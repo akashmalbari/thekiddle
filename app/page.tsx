@@ -1,51 +1,158 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
-  const [email, setEmail] = useState('')
-  const [message, setMessage] = useState('')
+  const [parent, setParent] = useState({
+    parent_name: "",
+    email: "",
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const [children, setChildren] = useState([
+    { child_name: "", child_age: "", interest: "", other_interest: "" },
+  ]);
 
-    const { error } = await supabase
-      .from('subscribers')
-      .insert([{ email }])
+  const [message, setMessage] = useState("");
 
-    if (error) {
-      setMessage('Already subscribed or error occurred.')
-    } else {
-      setMessage('🎉 Subscribed successfully!')
-      setEmail('')
+  const addChild = () => {
+    setChildren([
+      ...children,
+      { child_name: "", child_age: "", interest: "", other_interest: "" },
+    ]);
+  };
+
+  const handleSubmit = async () => {
+    if (!parent.email) {
+      setMessage("Email required");
+      return;
     }
-  }
+
+    // 1. get or create parent
+    let { data: existing } = await supabase
+      .from("parents")
+      .select("*")
+      .eq("email", parent.email)
+      .single();
+
+    let parentId;
+
+    if (existing) {
+      parentId = existing.id;
+    } else {
+      const { data, error } = await supabase
+        .from("parents")
+        .insert([parent])
+        .select()
+        .single();
+
+      if (error) {
+        setMessage("Error saving parent");
+        return;
+      }
+
+      parentId = data.id;
+    }
+
+    // 2. insert children
+    const payload = children.map((c) => ({
+      parent_id: parentId,
+      child_name: c.child_name,
+      child_age: parseInt(c.child_age),
+      interests:
+        c.interest === "others" ? c.other_interest : c.interest,
+    }));
+
+    const { error } = await supabase.from("children").insert(payload);
+
+    if (error) setMessage("Error saving");
+    else setMessage("Saved 🎉");
+  };
 
   return (
-    <main className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-3xl font-bold">The Kiddle 🧸</h1>
-      <p className="mt-2">Fun weekend content for kids, delivered to parents.</p>
+    <main style={{ padding: 40 }}>
+      <h1>The Kiddle 🧸</h1>
 
-      <form onSubmit={handleSubmit} className="mt-6">
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="border p-2 rounded w-64"
-        />
-        <br /><br />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Subscribe
-        </button>
-      </form>
+      <input
+        placeholder="Parent Name"
+        onChange={(e) =>
+          setParent({ ...parent, parent_name: e.target.value })
+        }
+      />
+      <br />
 
-      <p className="mt-4">{message}</p>
+      <input
+        placeholder="Email"
+        onChange={(e) =>
+          setParent({ ...parent, email: e.target.value })
+        }
+      />
+      <br />
+
+      <h3>Children</h3>
+
+      {children.map((child, index) => (
+        <div key={index} style={{ marginBottom: 20 }}>
+          <input
+            placeholder="Child Name"
+            onChange={(e) => {
+              const arr = [...children];
+              arr[index].child_name = e.target.value;
+              setChildren(arr);
+            }}
+          />
+          <br />
+
+          <input
+            type="number"
+            placeholder="Age"
+            onChange={(e) => {
+              const arr = [...children];
+              arr[index].child_age = e.target.value;
+              setChildren(arr);
+            }}
+          />
+          <br />
+
+          {/* dropdown */}
+          <select
+            onChange={(e) => {
+              const arr = [...children];
+              arr[index].interest = e.target.value;
+              setChildren(arr);
+            }}
+          >
+            <option value="">Select Interest</option>
+            <option value="animals">Animals</option>
+            <option value="space">Space</option>
+            <option value="stories">Stories</option>
+            <option value="science">Science</option>
+            <option value="others">Others</option>
+          </select>
+
+          {/* show textbox if others */}
+          {child.interest === "others" && (
+            <>
+              <br />
+              <input
+                placeholder="Enter interest"
+                onChange={(e) => {
+                  const arr = [...children];
+                  arr[index].other_interest = e.target.value;
+                  setChildren(arr);
+                }}
+              />
+            </>
+          )}
+        </div>
+      ))}
+
+      <button onClick={addChild}>+ Add Child</button>
+      <br /><br />
+
+      <button onClick={handleSubmit}>Submit</button>
+
+      <p>{message}</p>
     </main>
-  )
+  );
 }
