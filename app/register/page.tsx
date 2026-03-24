@@ -172,7 +172,7 @@ function RegisterInner() {
               <div style={card}>
                 {/* Plan picker */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-                  {[{ id: 'monthly', label: 'Monthly', price: '$9.99/mo', note: '4 newsletters' }, { id: 'yearly', label: 'Yearly', price: '$89.99/yr', note: 'Save $30! ⭐' }].map(p => (
+                  {[{ id: 'monthly', label: 'Monthly', price: '$1.99/mo', note: '4 newsletters' }, { id: 'yearly', label: 'Yearly', price: '$21.99/yr', note: '1 month free ⭐' }].map(p => (
                     <div key={p.id} onClick={() => setPlan(p.id)} style={{ borderRadius: 16, padding: '16px', border: `2px solid ${plan === p.id ? '#FFD166' : 'var(--border)'}`, background: plan === p.id ? '#FFF8E1' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{p.label}</div>
                       <div style={{ fontFamily: "'Baloo 2',cursive", fontSize: 22, fontWeight: 800, color: 'var(--dark)' }}>{p.price}</div>

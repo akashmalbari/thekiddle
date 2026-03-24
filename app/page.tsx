@@ -294,7 +294,7 @@ export default function HomePage() {
             <div style={{ background: 'white', borderRadius: 28, padding: '36px', border: '2px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Monthly Explorer</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>$9.99</span>
+                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>$1.99</span>
                 <span style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 700 }}>/month</span>
               </div>
               <p style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600, marginBottom: 28 }}>Perfect for trying it out</p>
@@ -319,10 +319,10 @@ export default function HomePage() {
               </div>
               <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Yearly Adventurer</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>$89.99</span>
+                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>$21.99</span>
                 <span style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 700 }}>/year</span>
               </div>
-              <div style={{ display: 'inline-block', background: '#E6FAF9', color: '#4AADA8', borderRadius: 'var(--r-full)', padding: '3px 12px', fontSize: 12, fontWeight: 800, marginBottom: 8 }}>Save $30!</div>
+              <div style={{ display: 'inline-block', background: '#E6FAF9', color: '#4AADA8', borderRadius: 'var(--r-full)', padding: '3px 12px', fontSize: 12, fontWeight: 800, marginBottom: 8 }}>1 Month Free</div>
               <p style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600, marginBottom: 28 }}>Best value for dedicated families</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
                 {['52 weekly newsletters', '150+ activities per year', 'Printable activity sheets', 'Parent guidance tips', 'Exclusive seasonal activities', 'Priority email support'].map((f, i) => (
