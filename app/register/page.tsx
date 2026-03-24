@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
@@ -54,6 +54,16 @@ function RegisterInner() {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [viewportWidth, setViewportWidth] = useState(1200)
+
+  useEffect(() => {
+    const syncViewport = () => setViewportWidth(window.innerWidth)
+    syncViewport()
+    window.addEventListener('resize', syncViewport)
+    return () => window.removeEventListener('resize', syncViewport)
+  }, [])
+
+  const isMobile = viewportWidth < 768
 
   const focus = (color: string) => (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     e.target.style.borderColor = color
@@ -78,7 +88,7 @@ function RegisterInner() {
     finally { setLoading(false) }
   }
 
-  const card: React.CSSProperties = { background: 'white', borderRadius: 28, padding: '36px', border: '2px solid var(--border)', boxShadow: 'var(--shadow-md)', animation: 'slide-up 0.45s ease both' }
+  const card: React.CSSProperties = { background: 'white', borderRadius: 28, padding: isMobile ? '24px 20px' : '36px', border: '2px solid var(--border)', boxShadow: 'var(--shadow-md)', animation: 'slide-up 0.45s ease both' }
 
   if (done) return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #FFF8E1, #FFF0EF, #E6FAF9)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -97,12 +107,12 @@ function RegisterInner() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)', display: 'flex', flexDirection: 'column' }}>
-      <nav style={{ padding: '18px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid var(--border)' }}>
+      <nav style={{ padding: isMobile ? '16px' : '18px 40px', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 12 : 0, background: 'white', borderBottom: '1px solid var(--border)' }}>
         <Logo />
         <StepDots step={step} />
       </nav>
 
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '24px 16px' : '40px 20px' }}>
         <div style={{ width: '100%', maxWidth: 500 }}>
 
           {/* ── STEP 0: Contact ── */}
@@ -110,7 +120,7 @@ function RegisterInner() {
             <div>
               <div style={{ textAlign: 'center', marginBottom: 32 }}>
                 <div style={{ fontSize: 52, marginBottom: 14 }}>👋</div>
-                <h1 style={{ fontSize: 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>Let&apos;s get started!</h1>
+                <h1 style={{ fontSize: isMobile ? 28 : 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>Let&apos;s get started!</h1>
                 <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>Just a couple of details to get your newsletter ready.</p>
               </div>
               <div style={card}>
@@ -135,7 +145,7 @@ function RegisterInner() {
             <div>
               <div style={{ textAlign: 'center', marginBottom: 32 }}>
                 <div style={{ fontSize: 52, marginBottom: 14 }}>🧒</div>
-                <h1 style={{ fontSize: 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>About your little one</h1>
+                <h1 style={{ fontSize: isMobile ? 28 : 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>About your little one</h1>
                 <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>We&apos;ll personalize activities to their age!</p>
               </div>
               <div style={card}>
@@ -150,7 +160,7 @@ function RegisterInner() {
                     {['3','4','5'].map(a => <option key={a} value={a}>{a} years old</option>)}
                   </select>
                 </div>
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
                   <button onClick={() => setStep(0)} style={{ padding: '13px 20px', borderRadius: 14, border: '2px solid var(--border)', background: 'white', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 700, cursor: 'pointer', color: 'var(--muted)' }}>← Back</button>
                   <button onClick={() => { if (childName.trim() && childAge) setStep(2) }} disabled={!childName.trim() || !childAge}
                     style={{ flex: 1, padding: '13px', borderRadius: 14, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 800, cursor: childName.trim() && childAge ? 'pointer' : 'not-allowed', background: childName.trim() && childAge ? '#FFD166' : 'var(--border)', color: childName.trim() && childAge ? '#1A1208' : 'var(--hint)', boxShadow: childName.trim() && childAge ? 'var(--shadow-yellow)' : 'none', transition: 'all 0.2s' }}>
@@ -166,12 +176,12 @@ function RegisterInner() {
             <div>
               <div style={{ textAlign: 'center', marginBottom: 32 }}>
                 <div style={{ fontSize: 52, marginBottom: 14 }}>🎉</div>
-                <h1 style={{ fontSize: 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>Almost there!</h1>
+                <h1 style={{ fontSize: isMobile ? 28 : 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>Almost there!</h1>
                 <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>Pick the plan that works for your family.</p>
               </div>
               <div style={card}>
                 {/* Plan picker */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 24 }}>
                   {[{ id: 'monthly', label: 'Monthly', price: '$1.99/mo', note: '4 newsletters' }, { id: 'yearly', label: 'Yearly', price: '$21.99/yr', note: '1 month free ⭐' }].map(p => (
                     <div key={p.id} onClick={() => setPlan(p.id)} style={{ borderRadius: 16, padding: '16px', border: `2px solid ${plan === p.id ? '#FFD166' : 'var(--border)'}`, background: plan === p.id ? '#FFF8E1' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{p.label}</div>
@@ -183,13 +193,13 @@ function RegisterInner() {
                 {/* Summary */}
                 <div style={{ background: '#E6FAF9', borderRadius: 14, padding: '14px 18px', marginBottom: 20, border: '2px solid #6ECDC830' }}>
                   <div style={{ fontSize: 11, fontWeight: 800, color: '#4AADA8', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Summary</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700, color: 'var(--body)' }}>
+                  <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: isMobile ? 4 : 12, fontSize: 14, fontWeight: 700, color: 'var(--body)' }}>
                     <span>👤 {name}</span><span>📧 {email}</span>
                   </div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--body)', marginTop: 4 }}>🧒 {childName}, age {childAge}</div>
                 </div>
                 {error && <div style={{ background: '#FFF0EF', border: '2px solid #FFAAA5', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#E07D78', fontWeight: 700 }}>⚠️ {error}</div>}
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
                   <button onClick={() => setStep(1)} style={{ padding: '13px 20px', borderRadius: 14, border: '2px solid var(--border)', background: 'white', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 700, cursor: 'pointer', color: 'var(--muted)' }}>← Back</button>
                   <button onClick={submit} disabled={loading} style={{ flex: 1, padding: '13px', borderRadius: 14, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 16, fontWeight: 800, cursor: loading ? 'wait' : 'pointer', background: loading ? 'var(--border)' : '#FFD166', color: loading ? 'var(--hint)' : '#1A1208', boxShadow: loading ? 'none' : 'var(--shadow-yellow)', transition: 'all 0.2s' }}>
                     {loading ? '⏳ Setting up...' : "Let's go! 🚀"}

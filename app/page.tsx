@@ -92,6 +92,7 @@ function EmailCapture({ onSuccess }: { onSuccess?: (email: string) => void }) {
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
+  const [viewportWidth, setViewportWidth] = useState(1200)
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 30)
@@ -99,32 +100,64 @@ export default function HomePage() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
+  useEffect(() => {
+    const syncViewport = () => setViewportWidth(window.innerWidth)
+    syncViewport()
+    window.addEventListener('resize', syncViewport)
+    return () => window.removeEventListener('resize', syncViewport)
+  }, [])
+
   const scrollTo = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); setMobileMenu(false) }
+  const isMobile = viewportWidth < 768
+  const isTablet = viewportWidth < 1024
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)', overflowX: 'hidden' }}>
 
       {/* ══ NAV ══════════════════════════════════════════ */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, padding: '0 40px', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: scrolled ? 'rgba(255,253,246,0.96)' : 'transparent', backdropFilter: scrolled ? 'blur(14px)' : 'none', borderBottom: scrolled ? '1px solid var(--border)' : 'none', transition: 'all 0.3s' }}>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, padding: isMobile ? '12px 16px' : '0 40px', minHeight: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: scrolled || mobileMenu ? 'rgba(255,253,246,0.96)' : 'transparent', backdropFilter: scrolled || mobileMenu ? 'blur(14px)' : 'none', borderBottom: scrolled || mobileMenu ? '1px solid var(--border)' : 'none', transition: 'all 0.3s', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: isMobile ? 12 : 0 }}>
         <Logo size="sm" />
-        <div style={{ display: 'flex', gap: 28, fontSize: 15, fontWeight: 700, color: 'var(--body)' }}>
+        {!isMobile && <div style={{ display: 'flex', gap: 28, fontSize: 15, fontWeight: 700, color: 'var(--body)' }}>
           {[['Features','features'],['How It Works','how-it-works'],['Pricing','pricing']].map(([label, id]) => (
             <span key={id} onClick={() => scrollTo(id)} style={{ cursor: 'pointer', transition: 'color 0.2s' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#FFD166'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--body)'}>{label}</span>
           ))}
-        </div>
-        <YellowBtn onClick={() => scrollTo('pricing')} style={{ padding: '10px 22px', fontSize: 14 }}>Get Started</YellowBtn>
+        </div>}
+        {isMobile ? (
+          <button
+            onClick={() => setMobileMenu(open => !open)}
+            style={{ border: '2px solid var(--border)', background: 'white', borderRadius: 14, padding: '10px 14px', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 800, color: 'var(--body)', cursor: 'pointer' }}
+          >
+            {mobileMenu ? 'Close' : 'Menu'}
+          </button>
+        ) : (
+          <YellowBtn onClick={() => scrollTo('pricing')} style={{ padding: '10px 22px', fontSize: 14 }}>Get Started</YellowBtn>
+        )}
+        {isMobile && mobileMenu && (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10, padding: '8px 0 4px' }}>
+            {[['Features','features'],['How It Works','how-it-works'],['Pricing','pricing']].map(([label, id]) => (
+              <button
+                key={id}
+                onClick={() => scrollTo(id)}
+                style={{ width: '100%', textAlign: 'left', border: 'none', background: 'white', borderRadius: 14, padding: '14px 16px', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 700, color: 'var(--body)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
+              >
+                {label}
+              </button>
+            ))}
+            <YellowBtn onClick={() => scrollTo('pricing')} style={{ width: '100%', padding: '14px 18px', fontSize: 15 }}>Get Started</YellowBtn>
+          </div>
+        )}
       </nav>
 
       {/* ══ HERO ══════════════════════════════════════════ */}
-      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '100px 40px 60px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: isMobile ? '120px 16px 48px' : isTablet ? '110px 24px 56px' : '100px 40px 60px', position: 'relative', overflow: 'hidden' }}>
         {/* Soft background blobs */}
-        <div style={{ position: 'absolute', top: '5%', right: '5%', width: 480, height: 480, borderRadius: '50%', background: 'radial-gradient(circle, #FFF8E1 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '10%', left: '-5%', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, #FFF0EF 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '5%', right: isMobile ? '-25%' : '5%', width: isMobile ? 260 : 480, height: isMobile ? 260 : 480, borderRadius: '50%', background: 'radial-gradient(circle, #FFF8E1 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '10%', left: isMobile ? '-20%' : '-5%', width: isMobile ? 220 : 360, height: isMobile ? 220 : 360, borderRadius: '50%', background: 'radial-gradient(circle, #FFF0EF 0%, transparent 70%)', pointerEvents: 'none' }} />
 
         {/* Floating craft doodles */}
-        {[
+        {!isMobile && [
           { emoji: '✂️', top: '14%', left: '4%', cls: 'float' },
           { emoji: '🖍️', top: '20%', right: '4%', cls: 'float-delay1' },
           { emoji: '🎨', bottom: '28%', left: '3%', cls: 'float-delay2' },
@@ -136,11 +169,11 @@ export default function HomePage() {
           </div>
         ))}
 
-        <div style={{ maxWidth: 1160, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center', width: '100%' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: isMobile ? 36 : 64, alignItems: 'center', width: '100%' }}>
           {/* Left */}
-          <div>
+          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
             <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–5 · Screen-Free</Tag></div>
-            <h1 style={{ fontSize: 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
+            <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
               Let&apos;s Make Learning &amp; Playing{' '}
               <span style={{ color: '#FFD166', position: 'relative', display: 'inline-block' }}>
                 Fun Without Screens
@@ -149,10 +182,10 @@ export default function HomePage() {
                 </svg>
               </span>
             </h1>
-            <p style={{ fontSize: 18, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600, maxWidth: 480 }}>
+            <p style={{ fontSize: isMobile ? 16 : 18, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600, maxWidth: 480, marginInline: isMobile ? 'auto' : undefined }}>
               Weekly activity-packed newsletters for kids aged 3–5. Creative, educational, and 100% screen-free!
             </p>
-            <div style={{ marginBottom: 20, maxWidth: 500 }}>
+            <div style={{ marginBottom: 20, maxWidth: 500, marginInline: isMobile ? 'auto' : undefined }}>
               <EmailCapture />
             </div>
             <p style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
@@ -161,9 +194,9 @@ export default function HomePage() {
           </div>
 
           {/* Right — illustrated card stack */}
-          <div style={{ position: 'relative', height: 460, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'relative', height: isMobile ? 320 : 460, display: 'flex', alignItems: 'center', justifyContent: 'center', order: isTablet ? -1 : 0 }}>
             {/* Main photo card */}
-            <div style={{ width: 360, height: 300, borderRadius: 28, overflow: 'hidden', boxShadow: '0 20px 60px rgba(26,18,8,0.15)', position: 'relative', zIndex: 2 }} className="float-sm">
+            <div style={{ width: isMobile ? '100%' : 360, maxWidth: 360, height: isMobile ? 250 : 300, borderRadius: 28, overflow: 'hidden', boxShadow: '0 20px 60px rgba(26,18,8,0.15)', position: 'relative', zIndex: 2 }} className="float-sm">
               {/* Illustrated placeholder — real photo would go here */}
               <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #FFF8E1 0%, #FFF0EF 50%, #E6FAF9 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                 <div style={{ fontSize: 64 }}>🎨</div>
@@ -175,7 +208,7 @@ export default function HomePage() {
               </div>
             </div>
             {/* Stat bubble */}
-            <div style={{ position: 'absolute', bottom: 80, left: 10, background: 'white', borderRadius: 18, padding: '14px 20px', boxShadow: 'var(--shadow-md)', display: 'flex', alignItems: 'center', gap: 12, zIndex: 3 }} className="float-delay1">
+            <div style={{ position: 'absolute', bottom: isMobile ? 24 : 80, left: isMobile ? 0 : 10, background: 'white', borderRadius: 18, padding: isMobile ? '12px 16px' : '14px 20px', boxShadow: 'var(--shadow-md)', display: 'flex', alignItems: 'center', gap: 12, zIndex: 3 }} className="float-delay1">
               <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#FFD166', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>✨</div>
               <div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--dark)', lineHeight: 1, fontFamily: "'Baloo 2',cursive" }}>150+</div>
@@ -183,7 +216,7 @@ export default function HomePage() {
               </div>
             </div>
             {/* Screen-free badge */}
-            <div style={{ position: 'absolute', top: 60, right: 10, background: '#E6FAF9', border: '2px solid #6ECDC8', borderRadius: 16, padding: '10px 16px', zIndex: 3, textAlign: 'center' }} className="float-delay2">
+            <div style={{ position: 'absolute', top: isMobile ? 14 : 60, right: 10, background: '#E6FAF9', border: '2px solid #6ECDC8', borderRadius: 16, padding: isMobile ? '8px 12px' : '10px 16px', zIndex: 3, textAlign: 'center' }} className="float-delay2">
               <div style={{ fontSize: 22 }}>📵</div>
               <div style={{ fontSize: 11, fontWeight: 800, color: '#4AADA8', marginTop: 4 }}>100% Screen<br />Free</div>
             </div>
@@ -192,16 +225,16 @@ export default function HomePage() {
       </section>
 
       {/* ══ FEATURES ══════════════════════════════════════ */}
-      <section id="features" style={{ padding: '80px 40px', background: 'white' }}>
+      <section id="features" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <Tag color="teal">What We Offer</Tag>
-            <h2 style={{ fontSize: 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>Everything Your Child Needs to Thrive</h2>
-            <p style={{ fontSize: 17, color: 'var(--body)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7, fontWeight: 600 }}>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>Everything Your Child Needs to Thrive</h2>
+            <p style={{ fontSize: isMobile ? 15 : 17, color: 'var(--body)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7, fontWeight: 600 }}>
               Carefully curated activities that engage, educate, and entertain — all without a single screen.
             </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 24 }}>
             {[
               { emoji: '🎨', title: 'Creative Activities', desc: 'Hands-on arts, crafts, and creative projects that spark imagination and develop fine motor skills.', color: '#FFD166', pale: '#FFF8E1' },
               { emoji: '📚', title: 'Educational Fun', desc: 'Learning through play with activities designed by early childhood educators for ages 3–5.', color: '#FFAAA5', pale: '#FFF0EF' },
@@ -234,12 +267,12 @@ export default function HomePage() {
       </section>
 
       {/* ══ HOW IT WORKS ═══════════════════════════════════ */}
-      <section id="how-it-works" style={{ padding: '80px 40px', background: 'var(--cream-warm)' }}>
+      <section id="how-it-works" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'var(--cream-warm)' }}>
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <Tag color="pink">Simple Process</Tag>
-            <h2 style={{ fontSize: 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>How Kiddle Works</h2>
-            <p style={{ fontSize: 17, color: 'var(--body)', fontWeight: 600 }}>Getting started is easy! Three simple steps to transform playtime.</p>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>How Kiddle Works</h2>
+            <p style={{ fontSize: isMobile ? 15 : 17, color: 'var(--body)', fontWeight: 600 }}>Getting started is easy! Three simple steps to transform playtime.</p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {[
@@ -247,7 +280,7 @@ export default function HomePage() {
               { n: '2', emoji: '📬', title: 'Receive Weekly', desc: 'Every week, a fresh newsletter lands in your inbox packed with 3+ screen-free activities for your little one.', color: '#FFAAA5' },
               { n: '3', emoji: '🌟', title: 'Play & Learn', desc: 'Print or follow along as your child explores, creates, and grows — without a screen in sight!', color: '#6ECDC8' },
             ].map((s, i) => (
-              <div key={i} style={{ display: 'flex', gap: 24, alignItems: 'flex-start', background: 'white', borderRadius: 22, padding: '28px 32px', border: '2px solid var(--border)', transition: 'border-color 0.2s, transform 0.2s' }}
+              <div key={i} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 24, alignItems: isMobile ? 'center' : 'flex-start', textAlign: isMobile ? 'center' : 'left', background: 'white', borderRadius: 22, padding: isMobile ? '24px 20px' : '28px 32px', border: '2px solid var(--border)', transition: 'border-color 0.2s, transform 0.2s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = s.color; (e.currentTarget as HTMLElement).style.transform = 'translateX(6px)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.transform = 'translateX(0)' }}>
                 <div style={{ width: 64, height: 64, borderRadius: 18, background: s.color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 4px 16px ${s.color}55` }}>
@@ -265,11 +298,11 @@ export default function HomePage() {
       </section>
 
       {/* ══ SAMPLE CTA ════════════════════════════════════ */}
-      <section style={{ padding: '60px 40px', background: 'white', borderTop: '2px solid var(--border)', borderBottom: '2px solid var(--border)' }}>
+      <section style={{ padding: isMobile ? '48px 16px' : isTablet ? '56px 24px' : '60px 40px', background: 'white', borderTop: '2px solid var(--border)', borderBottom: '2px solid var(--border)' }}>
         <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }} className="wiggle">📮</div>
-          <h2 style={{ fontSize: 30, fontWeight: 800, color: 'var(--dark)', marginBottom: 12 }}>See What&apos;s Inside</h2>
-          <p style={{ fontSize: 16, color: 'var(--body)', marginBottom: 28, fontWeight: 600, lineHeight: 1.7 }}>
+          <h2 style={{ fontSize: isMobile ? 28 : 30, fontWeight: 800, color: 'var(--dark)', marginBottom: 12 }}>See What&apos;s Inside</h2>
+          <p style={{ fontSize: isMobile ? 15 : 16, color: 'var(--body)', marginBottom: 28, fontWeight: 600, lineHeight: 1.7 }}>
             Curious about what Kiddle offers? Check out a sample newsletter to see the fun activities your child will enjoy!
           </p>
           <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#FFF0EF', color: '#E07D78', border: '2px solid #FFAAA5', borderRadius: 'var(--r-full)', padding: '13px 28px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 15, textDecoration: 'none', transition: 'all 0.2s' }}
@@ -282,14 +315,14 @@ export default function HomePage() {
       </section>
 
       {/* ══ PRICING ════════════════════════════════════════ */}
-      <section id="pricing" style={{ padding: '80px 40px', background: 'var(--cream)' }}>
+      <section id="pricing" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'var(--cream)' }}>
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <Tag color="yellow">Simple Pricing</Tag>
-            <h2 style={{ fontSize: 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>Choose Your Plan</h2>
-            <p style={{ fontSize: 17, color: 'var(--body)', fontWeight: 600 }}>Flexible options for every family. Cancel anytime, no questions asked.</p>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>Choose Your Plan</h2>
+            <p style={{ fontSize: isMobile ? 15 : 17, color: 'var(--body)', fontWeight: 600 }}>Flexible options for every family. Cancel anytime, no questions asked.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24 }}>
             {/* Monthly */}
             <div style={{ background: 'white', borderRadius: 28, padding: '36px', border: '2px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Monthly Explorer</div>
@@ -347,13 +380,13 @@ export default function HomePage() {
       </section>
 
       {/* ══ TESTIMONIALS ═══════════════════════════════════ */}
-      <section style={{ padding: '80px 40px', background: 'white' }}>
+      <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <Tag color="pink">Testimonials</Tag>
-            <h2 style={{ fontSize: 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16 }}>Loved By Parents Everywhere</h2>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16 }}>Loved By Parents Everywhere</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 24 }}>
             {[
               { q: '"Kiddle has been a game-changer! My kids look forward to the activities every week, and I love that they\'re learning while playing offline."', name: 'Sarah M.', role: 'Mom of two', color: '#FFF8E1' },
               { q: '"As an educator, I\'m impressed by the quality of activities. They\'re developmentally appropriate and genuinely engaging for young children."', name: 'James K.', role: 'Preschool Teacher & Dad', color: '#FFF0EF' },
@@ -384,14 +417,14 @@ export default function HomePage() {
       </section>
 
       {/* ══ FINAL CTA ══════════════════════════════════════ */}
-      <section style={{ padding: '80px 40px', background: 'linear-gradient(135deg, #FFD166 0%, #FFAAA5 60%, #6ECDC8 100%)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'linear-gradient(135deg, #FFD166 0%, #FFAAA5 60%, #6ECDC8 100%)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,253,246,0.15)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', maxWidth: 640, margin: '0 auto' }}>
           <div style={{ fontSize: 56, marginBottom: 20 }} className="float">🌟</div>
-          <h2 style={{ fontSize: 44, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.15, marginBottom: 16 }}>
+          <h2 style={{ fontSize: isMobile ? 34 : 44, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.15, marginBottom: 16 }}>
             Ready to Make Playtime Meaningful?
           </h2>
-          <p style={{ fontSize: 18, color: 'rgba(26,18,8,0.7)', marginBottom: 40, lineHeight: 1.7, fontWeight: 600 }}>
+          <p style={{ fontSize: isMobile ? 16 : 18, color: 'rgba(26,18,8,0.7)', marginBottom: 40, lineHeight: 1.7, fontWeight: 600 }}>
             Join thousands of parents choosing screen-free activities for their little ones. Start your journey today!
           </p>
           <div style={{ maxWidth: 500, margin: '0 auto 20px' }}>
@@ -404,9 +437,9 @@ export default function HomePage() {
       </section>
 
       {/* ══ FOOTER ════════════════════════════════════════ */}
-      <footer style={{ background: '#1A1208', color: 'rgba(255,255,255,0.7)', padding: '56px 40px 32px' }}>
+      <footer style={{ background: '#1A1208', color: 'rgba(255,255,255,0.7)', padding: isMobile ? '48px 16px 28px' : isTablet ? '52px 24px 32px' : '56px 40px 32px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 48 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 48 }}>
             <div>
               <Logo size="sm" />
               <p style={{ marginTop: 16, fontSize: 14, lineHeight: 1.7, fontWeight: 600, maxWidth: 260 }}>
@@ -434,7 +467,7 @@ export default function HomePage() {
               <a href="mailto:hello@thekiddle.com" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>hello@thekiddle.com</a>
             </div>
           </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, textAlign: 'center' }}>
             <p style={{ fontSize: 13, fontWeight: 600 }}>© 2026 The Kiddle. All rights reserved.</p>
             <p style={{ fontSize: 13, fontWeight: 600 }}>Made with ❤️ for little learners</p>
             <Link href="/admin" style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>Admin</Link>
