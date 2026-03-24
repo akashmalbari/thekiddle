@@ -1,26 +1,105 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── KIDDLE BRAND ── */
+  --yellow:       #FFD166;
+  --yellow-dark:  #E6B84A;
+  --yellow-pale:  #FFF8E1;
+  --yellow-deep:  #BF8C00;
+
+  --pink:         #FFAAA5;
+  --pink-dark:    #E07D78;
+  --pink-pale:    #FFF0EF;
+
+  --teal:         #6ECDC8;
+  --teal-dark:    #4AADA8;
+  --teal-pale:    #E6FAF9;
+
+  /* ── NEUTRALS ── */
+  --cream:        #FFFDF6;
+  --cream-warm:   #FFF9EE;
+  --white:        #FFFFFF;
+  --dark:         #1A1208;
+  --body:         #4A3C28;
+  --muted:        #8C7B62;
+  --hint:         #C4B49A;
+  --border:       #F0E8D4;
+  --border-strong:#DDD0B4;
+
+  /* ── RADII ── */
+  --r-sm:   8px;
+  --r-md:   14px;
+  --r-lg:   20px;
+  --r-xl:   28px;
+  --r-2xl:  40px;
+  --r-full: 9999px;
+
+  /* ── SHADOWS ── */
+  --shadow-sm:     0 2px 8px rgba(26,18,8,0.07);
+  --shadow-md:     0 4px 20px rgba(26,18,8,0.10);
+  --shadow-lg:     0 8px 40px rgba(26,18,8,0.12);
+  --shadow-yellow: 0 4px 20px rgba(255,209,102,0.45);
+  --shadow-pink:   0 4px 20px rgba(255,170,165,0.40);
+  --shadow-teal:   0 4px 20px rgba(110,205,200,0.40);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Nunito', sans-serif;
+  background: var(--cream);
+  color: var(--dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
+
+h1, h2, h3, h4 { font-family: 'Baloo 2', cursive; line-height: 1.2; }
+
+/* ── ANIMATIONS ── */
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+@keyframes float-y-sm {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pop-in {
+  0%   { transform: scale(0.7); opacity: 0; }
+  70%  { transform: scale(1.06); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes slide-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-4deg); }
+  50%       { transform: rotate(4deg); }
+}
+@keyframes bounce-dot {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+.float        { animation: float-y 4s ease-in-out infinite; }
+.float-sm     { animation: float-y-sm 3s ease-in-out infinite; }
+.float-delay1 { animation: float-y 4s ease-in-out 0.8s infinite; }
+.float-delay2 { animation: float-y 4s ease-in-out 1.6s infinite; }
+.float-delay3 { animation: float-y-sm 3s ease-in-out 1.2s infinite; }
+.wiggle       { animation: wiggle 3s ease-in-out infinite; }
+.pop-in       { animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.slide-up     { animation: slide-up 0.6s ease both; }
+.fade-in      { animation: fade-in 0.5s ease both; }
