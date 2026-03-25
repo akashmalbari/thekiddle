@@ -41,6 +41,17 @@ type Newsletter = {
   activities: number
 }
 
+type CountryPricing = {
+  id: number
+  country_code: string
+  country_name: string
+  currency_code: string
+  currency_symbol: string
+  monthly_price: number
+  yearly_price: number
+  is_active: boolean
+}
+
 const SAMPLE_NEWSLETTERS: Newsletter[] = [
   { id: 1, title: 'Rainbow Tissue Paper Collage', theme: '🎨 Art & Craft', age: '3–5', status: 'published', activities: 3 },
   { id: 2, title: 'Counting Garden Rocks', theme: '🔢 Math Play', age: '3–5', status: 'published', activities: 4 },
@@ -55,11 +66,23 @@ export default function AdminPage() {
   const [loginPw, setLoginPw] = useState('')
   const [loginErr, setLoginErr] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
-  const [tab, setTab] = useState<'subscribers' | 'newsletters'>('subscribers')
+  const [tab, setTab] = useState<'subscribers' | 'newsletters' | 'pricing'>('subscribers')
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [loadingData, setLoadingData] = useState(false)
   const [search, setSearch] = useState('')
   const [newsletters, setNewsletters] = useState(SAMPLE_NEWSLETTERS)
+  const [pricingRows, setPricingRows] = useState<CountryPricing[]>([])
+  const [pricingLoading, setPricingLoading] = useState(false)
+  const [pricingMsg, setPricingMsg] = useState('')
+  const [newPricing, setNewPricing] = useState({
+    country_code: '',
+    country_name: '',
+    currency_code: '',
+    currency_symbol: '',
+    monthly_price: '',
+    yearly_price: '',
+    is_active: true,
+  })
 
   const handleLogin = async () => {
     setLoginLoading(true); setLoginErr('')
@@ -83,7 +106,87 @@ export default function AdminPage() {
     setSubscribers(enriched); setLoadingData(false)
   }
 
-  useEffect(() => { if (authed) loadSubscribers() }, [authed])
+  const loadPricing = async () => {
+    setPricingLoading(true)
+    const { data } = await supabase
+      .from('country_pricing')
+      .select('id, country_code, country_name, currency_code, currency_symbol, monthly_price, yearly_price, is_active')
+      .order('country_code', { ascending: true })
+
+    setPricingRows((data || []) as CountryPricing[])
+    setPricingLoading(false)
+  }
+
+  const savePricingRow = async (row: CountryPricing) => {
+    setPricingMsg('')
+    if (!row.country_code || !row.currency_code) {
+      setPricingMsg('⚠️ Country code and currency code are required')
+      return
+    }
+
+    const { error } = await supabase
+      .from('country_pricing')
+      .update({
+        country_code: row.country_code.toUpperCase(),
+        country_name: row.country_name,
+        currency_code: row.currency_code.toUpperCase(),
+        currency_symbol: row.currency_symbol,
+        monthly_price: Number(row.monthly_price),
+        yearly_price: Number(row.yearly_price),
+        is_active: row.is_active,
+      })
+      .eq('id', row.id)
+
+    if (error) {
+      setPricingMsg(`⚠️ ${error.message}`)
+      return
+    }
+
+    setPricingMsg('✅ Pricing updated')
+    await loadPricing()
+  }
+
+  const addPricingRow = async () => {
+    setPricingMsg('')
+    if (!newPricing.country_code || !newPricing.country_name || !newPricing.currency_code || !newPricing.currency_symbol) {
+      setPricingMsg('⚠️ Fill all required fields to add pricing row')
+      return
+    }
+
+    const { error } = await supabase.from('country_pricing').insert({
+      country_code: newPricing.country_code.toUpperCase(),
+      country_name: newPricing.country_name,
+      currency_code: newPricing.currency_code.toUpperCase(),
+      currency_symbol: newPricing.currency_symbol,
+      monthly_price: Number(newPricing.monthly_price),
+      yearly_price: Number(newPricing.yearly_price),
+      is_active: newPricing.is_active,
+    })
+
+    if (error) {
+      setPricingMsg(`⚠️ ${error.message}`)
+      return
+    }
+
+    setNewPricing({
+      country_code: '',
+      country_name: '',
+      currency_code: '',
+      currency_symbol: '',
+      monthly_price: '',
+      yearly_price: '',
+      is_active: true,
+    })
+    setPricingMsg('✅ New country pricing added')
+    await loadPricing()
+  }
+
+  useEffect(() => {
+    if (authed) {
+      loadSubscribers()
+      loadPricing()
+    }
+  }, [authed])
 
   const inp: React.CSSProperties = { width: '100%', padding: '12px 16px', borderRadius: 12, border: '2px solid var(--border)', fontSize: 14, fontFamily: "'Nunito',sans-serif", fontWeight: 600, color: 'var(--dark)', background: 'var(--cream)', outline: 'none', transition: 'border-color 0.2s' }
   const filtered = subscribers.filter(s => s.email?.toLowerCase().includes(search.toLowerCase()) || s.name?.toLowerCase().includes(search.toLowerCase()) || s.children?.some(c => c.name?.toLowerCase().includes(search.toLowerCase())))
@@ -158,9 +261,9 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'white', borderRadius: 14, padding: 4, border: '2px solid var(--border)', width: 'fit-content', marginBottom: 22 }}>
-          {(['subscribers', 'newsletters'] as const).map(t => (
+          {(['subscribers', 'newsletters', 'pricing'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 22px', borderRadius: 11, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', background: tab === t ? '#FFD166' : 'transparent', color: tab === t ? '#1A1208' : 'var(--muted)', boxShadow: tab === t ? 'var(--shadow-yellow)' : 'none' }}>
-              {t === 'subscribers' ? '📧 Subscribers' : '📮 Newsletters'}
+              {t === 'subscribers' ? '📧 Subscribers' : t === 'newsletters' ? '📮 Newsletters' : '💱 Pricing'}
             </button>
           ))}
         </div>
@@ -236,6 +339,60 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* PRICING */}
+        {tab === 'pricing' && (
+          <div>
+            {pricingMsg && (
+              <div style={{ marginBottom: 14, background: 'white', border: '2px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
+                {pricingMsg}
+              </div>
+            )}
+
+            <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: 16, marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Add Country Pricing</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
+                <input style={{ ...inp, background: 'white' }} placeholder="Country Code (US)" value={newPricing.country_code} onChange={e => setNewPricing({ ...newPricing, country_code: e.target.value })} />
+                <input style={{ ...inp, background: 'white' }} placeholder="Country Name" value={newPricing.country_name} onChange={e => setNewPricing({ ...newPricing, country_name: e.target.value })} />
+                <input style={{ ...inp, background: 'white' }} placeholder="Currency Code (USD)" value={newPricing.currency_code} onChange={e => setNewPricing({ ...newPricing, currency_code: e.target.value })} />
+                <input style={{ ...inp, background: 'white' }} placeholder="Currency Symbol ($)" value={newPricing.currency_symbol} onChange={e => setNewPricing({ ...newPricing, currency_symbol: e.target.value })} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, alignItems: 'center' }}>
+                <input style={{ ...inp, background: 'white' }} type="number" step="0.01" placeholder="Monthly Price" value={newPricing.monthly_price} onChange={e => setNewPricing({ ...newPricing, monthly_price: e.target.value })} />
+                <input style={{ ...inp, background: 'white' }} type="number" step="0.01" placeholder="Yearly Price" value={newPricing.yearly_price} onChange={e => setNewPricing({ ...newPricing, yearly_price: e.target.value })} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
+                  <input type="checkbox" checked={newPricing.is_active} onChange={e => setNewPricing({ ...newPricing, is_active: e.target.checked })} /> Active
+                </label>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <button onClick={addPricingRow} style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>+ Add Pricing Row</button>
+              </div>
+            </div>
+
+            {pricingLoading ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'var(--muted)', fontWeight: 700, fontSize: 15 }}>Loading pricing...</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {pricingRows.map((row, i) => (
+                  <div key={row.id} style={{ background: 'white', borderRadius: 16, padding: 14, border: '2px solid var(--border)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr 1fr 1fr 1fr auto auto', gap: 8, alignItems: 'center' }}>
+                      <input style={{ ...inp, background: 'white' }} value={row.country_code} onChange={e => setPricingRows(pricingRows.map((r, idx) => idx === i ? { ...r, country_code: e.target.value } : r))} />
+                      <input style={{ ...inp, background: 'white' }} value={row.country_name} onChange={e => setPricingRows(pricingRows.map((r, idx) => idx === i ? { ...r, country_name: e.target.value } : r))} />
+                      <input style={{ ...inp, background: 'white' }} value={row.currency_code} onChange={e => setPricingRows(pricingRows.map((r, idx) => idx === i ? { ...r, currency_code: e.target.value } : r))} />
+                      <input style={{ ...inp, background: 'white' }} value={row.currency_symbol} onChange={e => setPricingRows(pricingRows.map((r, idx) => idx === i ? { ...r, currency_symbol: e.target.value } : r))} />
+                      <input style={{ ...inp, background: 'white' }} type="number" step="0.01" value={row.monthly_price} onChange={e => setPricingRows(pricingRows.map((r, idx) => idx === i ? { ...r, monthly_price: Number(e.target.value) } : r))} />
+                      <input style={{ ...inp, background: 'white' }} type="number" step="0.01" value={row.yearly_price} onChange={e => setPricingRows(pricingRows.map((r, idx) => idx === i ? { ...r, yearly_price: Number(e.target.value) } : r))} />
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700 }}>
+                        <input type="checkbox" checked={row.is_active} onChange={e => setPricingRows(pricingRows.map((r, idx) => idx === i ? { ...r, is_active: e.target.checked } : r))} /> Active
+                      </label>
+                      <button onClick={() => savePricingRow(row)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#E6FAF9', color: '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>Save</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
