@@ -68,6 +68,10 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 # initial plan mapping
 STRIPE_PRICE_MONTHLY_USD=price_...
 STRIPE_PRICE_YEARLY_USD=price_...
+
+# app/server
+APP_URL=http://localhost:3000
+SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
 ## 7) Optional (recommended) customer portal
@@ -105,4 +109,13 @@ Share these values (test mode):
 2. `STRIPE_WEBHOOK_SECRET`
 3. `STRIPE_PRICE_MONTHLY_USD`
 4. `STRIPE_PRICE_YEARLY_USD`
-5. Whether you want **Stripe-only** now, or Stripe+Razorpay later for India optimization.
+5. `SUPABASE_SERVICE_ROLE_KEY`
+6. Whether you want **Stripe-only** now, or Stripe+Razorpay later for India optimization.
+
+---
+
+## Endpoints now implemented in app
+- Checkout: `POST /api/billing/checkout`
+- Webhook: `POST /api/billing/webhook`
+
+Register flow now redirects to Stripe Checkout using `/api/billing/checkout`.

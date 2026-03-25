@@ -99,6 +99,17 @@ function RegisterInner() {
     loadPricing()
   }, [])
 
+  useEffect(() => {
+    const billingStatus = params.get('billing')
+    if (billingStatus === 'success') {
+      setDone(true)
+    }
+    if (billingStatus === 'cancelled') {
+      setError('Payment was cancelled. You can try again anytime.')
+      setStep(2)
+    }
+  }, [params])
+
   const isMobile = viewportWidth < 768
 
   const focus = (color: string) => (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -113,13 +124,16 @@ function RegisterInner() {
   const submit = async () => {
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ parentName: name, email, childName, childAge: parseInt(childAge), plan }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Something went wrong') }
-      setDone(true)
+
+      const data = await res.json()
+      if (!data?.url) throw new Error('Checkout session was not created')
+      window.location.href = data.url
     } catch (e: any) { setError(e.message) }
     finally { setLoading(false) }
   }
