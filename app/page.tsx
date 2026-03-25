@@ -305,11 +305,12 @@ export default function HomePage() {
           <p style={{ fontSize: isMobile ? 15 : 16, color: 'var(--body)', marginBottom: 28, fontWeight: 600, lineHeight: 1.7 }}>
             Curious about what Kiddle offers? Check out a sample newsletter to see the fun activities your child will enjoy!
           </p>
-          <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#FFF0EF', color: '#E07D78', border: '2px solid #FFAAA5', borderRadius: 'var(--r-full)', padding: '13px 28px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 15, textDecoration: 'none', transition: 'all 0.2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FFAAA5'; (e.currentTarget as HTMLElement).style.color = 'white' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FFF0EF'; (e.currentTarget as HTMLElement).style.color = '#E07D78' }}>
-            View Sample Newsletter 📄
-          </a>
+<a href="/TheKiddle_Newsletter_Template_v2.pdf" target="_blank" rel="noopener noreferrer"
+  style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#FFF0EF', color: '#E07D78', border: '2px solid #FFAAA5', borderRadius: 'var(--r-full)', padding: '13px 28px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 15, textDecoration: 'none', transition: 'all 0.2s' }}
+  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FFAAA5'; (e.currentTarget as HTMLElement).style.color = 'white' }}
+  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FFF0EF'; (e.currentTarget as HTMLElement).style.color = '#E07D78' }}>
+  View Sample Newsletter 📄
+</a>
           <p style={{ marginTop: 12, fontSize: 12, color: 'var(--hint)', fontWeight: 700 }}>No signup required · Instant access</p>
         </div>
       </section>
