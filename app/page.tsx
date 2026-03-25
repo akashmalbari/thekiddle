@@ -2,6 +2,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
+type PricingData = {
+  countryCode: string
+  countryName: string
+  currencyCode: string
+  monthlyDisplay: string
+  yearlyDisplay: string
+}
+
 /* ── LOGO ──────────────────────────────────────────────── */
 function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const s = { sm: { the: 12, main: 24, pencil: 9 }, md: { the: 15, main: 32, pencil: 12 }, lg: { the: 20, main: 48, pencil: 18 } }[size]
@@ -93,6 +101,13 @@ export default function HomePage() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
   const [viewportWidth, setViewportWidth] = useState(1200)
+  const [pricing, setPricing] = useState<PricingData>({
+    countryCode: 'US',
+    countryName: 'United States',
+    currencyCode: 'USD',
+    monthlyDisplay: '$1.99',
+    yearlyDisplay: '$21.99',
+  })
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 30)
@@ -105,6 +120,27 @@ export default function HomePage() {
     syncViewport()
     window.addEventListener('resize', syncViewport)
     return () => window.removeEventListener('resize', syncViewport)
+  }, [])
+
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        const res = await fetch('/api/pricing')
+        if (!res.ok) return
+        const data = await res.json()
+        setPricing({
+          countryCode: data.countryCode,
+          countryName: data.countryName,
+          currencyCode: data.currencyCode,
+          monthlyDisplay: data.monthlyDisplay,
+          yearlyDisplay: data.yearlyDisplay,
+        })
+      } catch {
+        // keep USD fallback
+      }
+    }
+
+    loadPricing()
   }, [])
 
   const scrollTo = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); setMobileMenu(false) }
@@ -328,7 +364,7 @@ export default function HomePage() {
             <div style={{ background: 'white', borderRadius: 28, padding: '36px', border: '2px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Monthly Explorer</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>$1.99</span>
+                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>{pricing.monthlyDisplay}</span>
                 <span style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 700 }}>/month</span>
               </div>
               <p style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600, marginBottom: 28 }}>Perfect for trying it out</p>
@@ -353,7 +389,7 @@ export default function HomePage() {
               </div>
               <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Yearly Adventurer</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>$21.99</span>
+                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>{pricing.yearlyDisplay}</span>
                 <span style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 700 }}>/year</span>
               </div>
               <div style={{ display: 'inline-block', background: '#E6FAF9', color: '#4AADA8', borderRadius: 'var(--r-full)', padding: '3px 12px', fontSize: 12, fontWeight: 800, marginBottom: 8 }}>1 Month Free</div>
@@ -374,7 +410,7 @@ export default function HomePage() {
             </div>
           </div>
           <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
-            All plans include a 7-day money-back guarantee. Questions?{' '}
+            Pricing shown for {pricing.countryName} ({pricing.currencyCode}). All plans include a 7-day money-back guarantee. Questions?{' '}
             <a href="mailto:hello@thekiddle.com" style={{ color: '#FFAAA5', textDecoration: 'none', fontWeight: 800 }}>Contact us</a>
           </p>
         </div>

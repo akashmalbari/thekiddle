@@ -4,6 +4,14 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
+type PricingData = {
+  countryCode: string
+  countryName: string
+  currencyCode: string
+  monthlyDisplay: string
+  yearlyDisplay: string
+}
+
 function Logo() {
   return (
     <Link href="/" style={{ display: 'inline-flex', flexDirection: 'column', lineHeight: 1, userSelect: 'none', textDecoration: 'none' }}>
@@ -55,12 +63,40 @@ function RegisterInner() {
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
   const [viewportWidth, setViewportWidth] = useState(1200)
+  const [pricing, setPricing] = useState<PricingData>({
+    countryCode: 'US',
+    countryName: 'United States',
+    currencyCode: 'USD',
+    monthlyDisplay: '$1.99',
+    yearlyDisplay: '$21.99',
+  })
 
   useEffect(() => {
     const syncViewport = () => setViewportWidth(window.innerWidth)
     syncViewport()
     window.addEventListener('resize', syncViewport)
     return () => window.removeEventListener('resize', syncViewport)
+  }, [])
+
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        const res = await fetch('/api/pricing')
+        if (!res.ok) return
+        const data = await res.json()
+        setPricing({
+          countryCode: data.countryCode,
+          countryName: data.countryName,
+          currencyCode: data.currencyCode,
+          monthlyDisplay: data.monthlyDisplay,
+          yearlyDisplay: data.yearlyDisplay,
+        })
+      } catch {
+        // keep USD fallback
+      }
+    }
+
+    loadPricing()
   }, [])
 
   const isMobile = viewportWidth < 768
@@ -182,7 +218,7 @@ function RegisterInner() {
               <div style={card}>
                 {/* Plan picker */}
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 24 }}>
-                  {[{ id: 'monthly', label: 'Monthly', price: '$1.99/mo', note: '4 newsletters' }, { id: 'yearly', label: 'Yearly', price: '$21.99/yr', note: '1 month free ⭐' }].map(p => (
+                  {[{ id: 'monthly', label: 'Monthly', price: `${pricing.monthlyDisplay}/mo`, note: '4 newsletters' }, { id: 'yearly', label: 'Yearly', price: `${pricing.yearlyDisplay}/yr`, note: '1 month free ⭐' }].map(p => (
                     <div key={p.id} onClick={() => setPlan(p.id)} style={{ borderRadius: 16, padding: '16px', border: `2px solid ${plan === p.id ? '#FFD166' : 'var(--border)'}`, background: plan === p.id ? '#FFF8E1' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{p.label}</div>
                       <div style={{ fontFamily: "'Baloo 2',cursive", fontSize: 22, fontWeight: 800, color: 'var(--dark)' }}>{p.price}</div>
