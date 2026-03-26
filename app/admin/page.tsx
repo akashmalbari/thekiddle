@@ -52,6 +52,17 @@ type CountryPricing = {
   is_active: boolean
 }
 
+type ContactQuery = {
+  id: number
+  name: string
+  email: string
+  subject: string | null
+  message: string
+  answered: boolean
+  created_at: string
+  answered_at: string | null
+}
+
 const SAMPLE_NEWSLETTERS: Newsletter[] = [
   { id: 1, title: 'Rainbow Tissue Paper Collage', theme: '🎨 Art & Craft', age: '3–5', status: 'published', activities: 3 },
   { id: 2, title: 'Counting Garden Rocks', theme: '🔢 Math Play', age: '3–5', status: 'published', activities: 4 },
@@ -66,7 +77,7 @@ export default function AdminPage() {
   const [loginPw, setLoginPw] = useState('')
   const [loginErr, setLoginErr] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
-  const [tab, setTab] = useState<'subscribers' | 'newsletters' | 'pricing'>('subscribers')
+  const [tab, setTab] = useState<'subscribers' | 'newsletters' | 'pricing' | 'contacts'>('subscribers')
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [loadingData, setLoadingData] = useState(false)
   const [search, setSearch] = useState('')
@@ -83,6 +94,9 @@ export default function AdminPage() {
     yearly_price: '',
     is_active: true,
   })
+  const [contactQueries, setContactQueries] = useState<ContactQuery[]>([])
+  const [contactLoading, setContactLoading] = useState(false)
+  const [contactMsg, setContactMsg] = useState('')
 
   const handleLogin = async () => {
     setLoginLoading(true); setLoginErr('')
@@ -115,6 +129,41 @@ export default function AdminPage() {
 
     setPricingRows((data || []) as CountryPricing[])
     setPricingLoading(false)
+  }
+
+  const loadContactQueries = async () => {
+    setContactLoading(true)
+    const { data } = await supabase
+      .from('contact_queries')
+      .select('id, name, email, subject, message, answered, created_at, answered_at')
+      .order('created_at', { ascending: false })
+
+    setContactQueries((data || []) as ContactQuery[])
+    setContactLoading(false)
+  }
+
+  const markContactAnswered = async (query: ContactQuery, answered: boolean) => {
+    setContactMsg('')
+
+    const { data: authUser } = await supabase.auth.getUser()
+    const adminId = authUser.user?.id || null
+
+    const { error } = await supabase
+      .from('contact_queries')
+      .update({
+        answered,
+        answered_at: answered ? new Date().toISOString() : null,
+        answered_by: answered ? adminId : null,
+      })
+      .eq('id', query.id)
+
+    if (error) {
+      setContactMsg(`⚠️ ${error.message}`)
+      return
+    }
+
+    setContactMsg('✅ Contact status updated')
+    await loadContactQueries()
   }
 
   const savePricingRow = async (row: CountryPricing) => {
@@ -185,6 +234,7 @@ export default function AdminPage() {
     if (authed) {
       loadSubscribers()
       loadPricing()
+      loadContactQueries()
     }
   }, [authed])
 
@@ -261,9 +311,9 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'white', borderRadius: 14, padding: 4, border: '2px solid var(--border)', width: 'fit-content', marginBottom: 22 }}>
-          {(['subscribers', 'newsletters', 'pricing'] as const).map(t => (
+          {(['subscribers', 'newsletters', 'pricing', 'contacts'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 22px', borderRadius: 11, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', background: tab === t ? '#FFD166' : 'transparent', color: tab === t ? '#1A1208' : 'var(--muted)', boxShadow: tab === t ? 'var(--shadow-yellow)' : 'none' }}>
-              {t === 'subscribers' ? '📧 Subscribers' : t === 'newsletters' ? '📮 Newsletters' : '💱 Pricing'}
+              {t === 'subscribers' ? '📧 Subscribers' : t === 'newsletters' ? '📮 Newsletters' : t === 'pricing' ? '💱 Pricing' : '💬 Contacts'}
             </button>
           ))}
         </div>
@@ -389,6 +439,39 @@ export default function AdminPage() {
                       </label>
                       <button onClick={() => savePricingRow(row)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#E6FAF9', color: '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>Save</button>
                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CONTACTS */}
+        {tab === 'contacts' && (
+          <div>
+            {contactMsg && (
+              <div style={{ marginBottom: 14, background: 'white', border: '2px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
+                {contactMsg}
+              </div>
+            )}
+            {contactLoading ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'var(--muted)', fontWeight: 700, fontSize: 15 }}>Loading contact queries...</div>
+            ) : contactQueries.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'var(--muted)', fontWeight: 700, fontSize: 15 }}>No contact queries yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {contactQueries.map(q => (
+                  <div key={q.id} style={{ background: 'white', borderRadius: 18, padding: '16px 18px', border: '2px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                      <div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--dark)' }}>{q.name} · {q.email}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>{q.subject || 'No subject'} · {new Date(q.created_at).toLocaleString()}</div>
+                      </div>
+                      <button onClick={() => markContactAnswered(q, !q.answered)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: q.answered ? '#FFF0EF' : '#E6FAF9', color: q.answered ? '#E07D78' : '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>
+                        {q.answered ? 'Mark Unanswered' : 'Mark Answered'}
+                      </button>
+                    </div>
+                    <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.7, color: 'var(--body)', fontWeight: 600 }}>{q.message}</p>
                   </div>
                 ))}
               </div>

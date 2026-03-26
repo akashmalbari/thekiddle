@@ -94,6 +94,82 @@ function EmailCapture({ onSuccess }: { onSuccess?: (email: string) => void }) {
   )
 }
 
+function ContactForm() {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [subject, setSubject] = useState('')
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [done, setDone] = useState(false)
+  const [error, setError] = useState('')
+
+  const submit = async () => {
+    if (!name.trim() || !email.includes('@') || !message.trim()) {
+      setError('Please fill name, valid email, and message.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, subject, message }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Unable to submit right now.')
+      }
+
+      setDone(true)
+      setName('')
+      setEmail('')
+      setSubject('')
+      setMessage('')
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (done) {
+    return (
+      <div style={{ background: '#E6FAF9', border: '2px solid #6ECDC8', borderRadius: 16, padding: '14px 16px', fontSize: 14, fontWeight: 700, color: '#2C2016' }}>
+        ✅ Thanks! We received your query and will get back to you soon.
+      </div>
+    )
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    borderRadius: 12,
+    border: '2px solid var(--border)',
+    padding: '11px 12px',
+    fontFamily: "'Nunito',sans-serif",
+    fontSize: 14,
+    fontWeight: 600,
+    color: 'var(--dark)',
+    background: 'white',
+    outline: 'none',
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <input style={inputStyle} placeholder="Your name *" value={name} onChange={e => setName(e.target.value)} />
+      <input style={inputStyle} type="email" placeholder="Your email *" value={email} onChange={e => setEmail(e.target.value)} />
+      <input style={inputStyle} placeholder="Subject (optional)" value={subject} onChange={e => setSubject(e.target.value)} />
+      <textarea style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }} placeholder="Your message *" value={message} onChange={e => setMessage(e.target.value)} />
+      {error && <div style={{ color: '#E07D78', fontSize: 13, fontWeight: 700 }}>⚠️ {error}</div>}
+      <button onClick={submit} disabled={loading} style={{ border: 'none', borderRadius: 999, background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 14, padding: '11px 16px', cursor: loading ? 'wait' : 'pointer' }}>
+        {loading ? 'Sending...' : 'Send Message'}
+      </button>
+    </div>
+  )
+}
+
 /* ══════════════════════════════════════════════════════════
    HOME PAGE
 ═══════════════════════════════════════════════════════════ */
@@ -473,10 +549,24 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ══ CONTACT ═══════════════════════════════════════ */}
+      <section id="contact" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white', borderTop: '2px solid var(--border)' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <Tag color="teal">Contact Us</Tag>
+            <h2 style={{ fontSize: isMobile ? 30 : 38, fontWeight: 800, color: 'var(--dark)', marginTop: 14, marginBottom: 8 }}>Have a Question?</h2>
+            <p style={{ fontSize: 15, color: 'var(--body)', fontWeight: 600 }}>Send us a message and our team will reply soon.</p>
+          </div>
+          <div style={{ background: 'var(--cream)', border: '2px solid var(--border)', borderRadius: 20, padding: isMobile ? '18px' : '24px' }}>
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+
       {/* ══ FOOTER ════════════════════════════════════════ */}
       <footer style={{ background: '#1A1208', color: 'rgba(255,255,255,0.7)', padding: isMobile ? '48px 16px 28px' : isTablet ? '52px 24px 32px' : '56px 40px 32px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 48 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : '2fr 1fr 1fr', gap: 40, marginBottom: 48 }}>
             <div>
               <Logo size="sm" />
               <p style={{ marginTop: 16, fontSize: 14, lineHeight: 1.7, fontWeight: 600, maxWidth: 260 }}>
@@ -485,23 +575,29 @@ export default function HomePage() {
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#FFD166', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 16 }}>Quick Links</div>
-              {['Features', 'How It Works', 'Pricing', 'Sample Newsletter'].map(l => (
-                <div key={l} style={{ fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer' }}
+              {[
+                { label: 'Features', action: () => scrollTo('features') },
+                { label: 'How It Works', action: () => scrollTo('how-it-works') },
+                { label: 'Pricing', action: () => scrollTo('pricing') },
+                { label: 'Sample Newsletter', action: () => window.open('/TheKiddle_Newsletter_Template_v2.pdf', '_blank') },
+              ].map(l => (
+                <button key={l.label} onClick={l.action} style={{ fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', padding: 0, fontFamily: "'Nunito',sans-serif", textAlign: 'left' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'white'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'}>{l}</div>
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'}>{l.label}</button>
               ))}
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#FFD166', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 16 }}>Support</div>
-              {['FAQ', 'Contact Us', 'Privacy Policy', 'Terms of Service'].map(l => (
-                <div key={l} style={{ fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer' }}
+              {[
+                { label: 'FAQ', action: () => scrollTo('contact') },
+                { label: 'Contact Us', action: () => scrollTo('contact') },
+                { label: 'Privacy Policy', action: () => scrollTo('contact') },
+                { label: 'Terms of Service', action: () => scrollTo('contact') },
+              ].map(l => (
+                <button key={l.label} onClick={l.action} style={{ fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', padding: 0, fontFamily: "'Nunito',sans-serif", textAlign: 'left' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'white'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'}>{l}</div>
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'}>{l.label}</button>
               ))}
-            </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#FFD166', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 16 }}>Get In Touch</div>
-              <a href="mailto:hello@thekiddle.com" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>hello@thekiddle.com</a>
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, textAlign: 'center' }}>
