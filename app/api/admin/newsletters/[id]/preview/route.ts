@@ -4,11 +4,12 @@ import { requireAdmin } from '@/lib/serverAdminAuth'
 
 const BUCKET = 'newsletters'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin(req)
   if ('error' in auth) return auth.error
 
-  const newsletterId = Number(params.id)
+  const { id } = await context.params
+  const newsletterId = Number(id)
   if (!Number.isFinite(newsletterId)) {
     return NextResponse.json({ error: 'Invalid newsletter id' }, { status: 400 })
   }

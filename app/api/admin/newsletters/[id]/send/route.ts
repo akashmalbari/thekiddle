@@ -5,11 +5,12 @@ import { requireAdmin } from '@/lib/serverAdminAuth'
 const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin(req)
   if ('error' in auth) return auth.error
 
-  const newsletterId = Number(params.id)
+  const { id } = await context.params
+  const newsletterId = Number(id)
   if (!Number.isFinite(newsletterId)) {
     return NextResponse.json({ error: 'Invalid newsletter id' }, { status: 400 })
   }
