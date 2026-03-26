@@ -32,13 +32,18 @@ type Subscriber = {
   children: { name: string; age_value: number }[]
 }
 
-type Newsletter = {
+type NewsletterRecord = {
   id: number
   title: string
-  theme: string
-  age: string
-  status: 'published' | 'draft'
-  activities: number
+  subject: string
+  issue_date: string
+  pdf_path: string | null
+  status: 'draft' | 'uploaded' | 'sending' | 'sent' | 'failed'
+  created_at: string
+  sent_at: string | null
+  recipient_count?: number
+  sent_count?: number
+  failed_count?: number
 }
 
 type CountryPricing = {
@@ -63,14 +68,6 @@ type ContactQuery = {
   answered_at: string | null
 }
 
-const SAMPLE_NEWSLETTERS: Newsletter[] = [
-  { id: 1, title: 'Rainbow Tissue Paper Collage', theme: '🎨 Art & Craft', age: '3–5', status: 'published', activities: 3 },
-  { id: 2, title: 'Counting Garden Rocks', theme: '🔢 Math Play', age: '3–5', status: 'published', activities: 4 },
-  { id: 3, title: 'Animal Sound Walk', theme: '🐾 Nature', age: '3–5', status: 'published', activities: 3 },
-  { id: 4, title: 'Sensory Cloud Dough', theme: '🤲 Sensory', age: '3–5', status: 'draft', activities: 2 },
-  { id: 5, title: 'Letter Treasure Hunt', theme: '📖 Literacy', age: '3–4', status: 'draft', activities: 3 },
-]
-
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false)
   const [loginEmail, setLoginEmail] = useState('')
@@ -81,7 +78,7 @@ export default function AdminPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [loadingData, setLoadingData] = useState(false)
   const [search, setSearch] = useState('')
-  const [newsletters, setNewsletters] = useState(SAMPLE_NEWSLETTERS)
+  const [newsletters, setNewsletters] = useState<NewsletterRecord[]>([])
   const [pricingRows, setPricingRows] = useState<CountryPricing[]>([])
   const [pricingLoading, setPricingLoading] = useState(false)
   const [pricingMsg, setPricingMsg] = useState('')
@@ -97,6 +94,15 @@ export default function AdminPage() {
   const [contactQueries, setContactQueries] = useState<ContactQuery[]>([])
   const [contactLoading, setContactLoading] = useState(false)
   const [contactMsg, setContactMsg] = useState('')
+
+  const [newsletterLoading, setNewsletterLoading] = useState(false)
+  const [newsletterMsg, setNewsletterMsg] = useState('')
+  const [newsletterTitle, setNewsletterTitle] = useState('')
+  const [newsletterSubject, setNewsletterSubject] = useState('')
+  const [newsletterIssueDate, setNewsletterIssueDate] = useState('')
+  const [newsletterFile, setNewsletterFile] = useState<File | null>(null)
+  const [uploadingPdf, setUploadingPdf] = useState(false)
+  const [savingNewsletter, setSavingNewsletter] = useState(false)
 
   const handleLogin = async () => {
     setLoginLoading(true); setLoginErr('')
@@ -140,6 +146,112 @@ export default function AdminPage() {
 
     setContactQueries((data || []) as ContactQuery[])
     setContactLoading(false)
+  }
+
+  const authFetch = async (url: string, init?: RequestInit) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    const accessToken = session?.access_token
+    if (!accessToken) throw new Error('Not authenticated')
+
+    return fetch(url, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+  }
+
+  const loadNewsletters = async () => {
+    setNewsletterLoading(true)
+    setNewsletterMsg('')
+    try {
+      const res = await authFetch('/api/admin/newsletters')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to load newsletters')
+      setNewsletters(data.newsletters || [])
+    } catch (e: any) {
+      setNewsletterMsg(`⚠️ ${e.message}`)
+    } finally {
+      setNewsletterLoading(false)
+    }
+  }
+
+  const saveNewsletter = async () => {
+    setNewsletterMsg('')
+    if (!newsletterTitle.trim() || !newsletterSubject.trim() || !newsletterIssueDate || !newsletterFile) {
+      setNewsletterMsg('⚠️ Title, subject, issue date, and PDF are required')
+      return
+    }
+
+    setSavingNewsletter(true)
+    try {
+      setUploadingPdf(true)
+      const formData = new FormData()
+      formData.append('file', newsletterFile)
+
+      const uploadRes = await authFetch('/api/admin/newsletters/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      const uploadData = await uploadRes.json()
+      if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed')
+      setUploadingPdf(false)
+
+      const createRes = await authFetch('/api/admin/newsletters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newsletterTitle,
+          subject: newsletterSubject,
+          issueDate: newsletterIssueDate,
+          pdfPath: uploadData.path,
+        }),
+      })
+
+      const createData = await createRes.json()
+      if (!createRes.ok) throw new Error(createData.error || 'Unable to save newsletter')
+
+      setNewsletterTitle('')
+      setNewsletterSubject('')
+      setNewsletterIssueDate('')
+      setNewsletterFile(null)
+      setNewsletterMsg('✅ Newsletter uploaded and saved')
+      await loadNewsletters()
+    } catch (e: any) {
+      setNewsletterMsg(`⚠️ ${e.message}`)
+    } finally {
+      setUploadingPdf(false)
+      setSavingNewsletter(false)
+    }
+  }
+
+  const previewNewsletter = async (newsletterId: number) => {
+    setNewsletterMsg('')
+    try {
+      const res = await authFetch(`/api/admin/newsletters/${newsletterId}/preview`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to preview newsletter')
+      window.open(data.url, '_blank', 'noopener,noreferrer')
+    } catch (e: any) {
+      setNewsletterMsg(`⚠️ ${e.message}`)
+    }
+  }
+
+  const sendNewsletter = async (newsletterId: number) => {
+    setNewsletterMsg('')
+    try {
+      const res = await authFetch(`/api/admin/newsletters/${newsletterId}/send`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to send newsletter')
+      setNewsletterMsg(`✅ Send completed — Sent: ${data.sentCount}, Failed: ${data.failedCount}`)
+      await loadNewsletters()
+    } catch (e: any) {
+      setNewsletterMsg(`⚠️ ${e.message}`)
+    }
   }
 
   const markContactAnswered = async (query: ContactQuery, answered: boolean) => {
@@ -235,6 +347,7 @@ export default function AdminPage() {
       loadSubscribers()
       loadPricing()
       loadContactQueries()
+      loadNewsletters()
     }
   }, [authed])
 
@@ -297,7 +410,7 @@ export default function AdminPage() {
             { label: 'Total Subscribers', value: subscribers.length, emoji: '📧', color: '#FFD166' },
             { label: 'Children Registered', value: totalKids, emoji: '🧒', color: '#FFAAA5' },
             { label: 'Joined This Week', value: thisWeek, emoji: '📈', color: '#6ECDC8' },
-            { label: 'Newsletters Sent', value: newsletters.filter(n => n.status === 'published').length, emoji: '📮', color: '#FFD166' },
+            { label: 'Newsletters Sent', value: newsletters.filter(n => n.status === 'sent').length, emoji: '📮', color: '#FFD166' },
           ].map((s, i) => (
             <div key={i} style={{ background: 'white', borderRadius: 18, padding: '18px 22px', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ width: 46, height: 46, borderRadius: 14, background: s.color + '28', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{s.emoji}</div>
@@ -361,34 +474,52 @@ export default function AdminPage() {
         {/* NEWSLETTERS */}
         {tab === 'newsletters' && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-              <button style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--shadow-yellow)' }}>
-                + New Newsletter
-              </button>
+            {newsletterMsg && (
+              <div style={{ marginBottom: 14, background: 'white', border: '2px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
+                {newsletterMsg}
+              </div>
+            )}
+
+            <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: 16, marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Upload Newsletter PDF</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
+                <input style={{ ...inp, background: 'white' }} placeholder="Title" value={newsletterTitle} onChange={e => setNewsletterTitle(e.target.value)} />
+                <input style={{ ...inp, background: 'white' }} placeholder="Email Subject" value={newsletterSubject} onChange={e => setNewsletterSubject(e.target.value)} />
+                <input style={{ ...inp, background: 'white' }} type="date" value={newsletterIssueDate} onChange={e => setNewsletterIssueDate(e.target.value)} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input type="file" accept="application/pdf" onChange={e => setNewsletterFile(e.target.files?.[0] || null)} />
+                <button onClick={saveNewsletter} disabled={savingNewsletter || uploadingPdf} style={{ padding: '9px 16px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: savingNewsletter ? 'wait' : 'pointer' }}>
+                  {uploadingPdf ? 'Uploading PDF...' : savingNewsletter ? 'Saving...' : 'Save Newsletter'}
+                </button>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {newsletters.map(n => (
-                <div key={n.id} style={{ background: 'white', borderRadius: 18, padding: '18px 24px', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16, transition: 'border-color 0.2s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = '#6ECDC8'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: '#E6FAF9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>📮</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--dark)' }}>{n.title}</div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>{n.theme} · Ages {n.age} · {n.activities} activities</div>
+
+            {newsletterLoading ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'var(--muted)', fontWeight: 700, fontSize: 15 }}>Loading newsletters...</div>
+            ) : newsletters.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'var(--muted)', fontWeight: 700, fontSize: 15 }}>No newsletters uploaded yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {newsletters.map(n => (
+                  <div key={n.id} style={{ background: 'white', borderRadius: 16, padding: 14, border: '2px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--dark)' }}>{n.title}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>Issue: {n.issue_date} · Subject: {n.subject}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--hint)' }}>Status: {n.status}{n.sent_at ? ` · Sent: ${new Date(n.sent_at).toLocaleString()}` : ''}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => previewNewsletter(n.id)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#E6FAF9', color: '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>Preview</button>
+                        <button onClick={() => sendNewsletter(n.id)} disabled={n.status === 'sending'} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: n.status === 'sending' ? 'wait' : 'pointer' }}>
+                          {n.status === 'sending' ? 'Sending...' : 'Send'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ padding: '4px 14px', borderRadius: 'var(--r-full)', fontSize: 12, fontWeight: 800, background: n.status === 'published' ? '#E6FAF9' : '#FFF8E1', color: n.status === 'published' ? '#4AADA8' : '#E6B84A', border: `1.5px solid ${n.status === 'published' ? '#6ECDC855' : '#FFD16655'}` }}>
-                    {n.status === 'published' ? '● Published' : '○ Draft'}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button style={{ padding: '6px 14px', borderRadius: 10, border: '1.5px solid var(--border)', background: 'white', fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer', color: 'var(--muted)' }}>Edit</button>
-                    <button onClick={() => setNewsletters(newsletters.map(x => x.id === n.id ? { ...x, status: x.status === 'published' ? 'draft' : 'published' } : x))}
-                      style={{ padding: '6px 14px', borderRadius: 10, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer', background: n.status === 'published' ? '#FFF0EF' : '#E6FAF9', color: n.status === 'published' ? '#E07D78' : '#4AADA8' }}>
-                      {n.status === 'published' ? 'Unpublish' : 'Publish'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
