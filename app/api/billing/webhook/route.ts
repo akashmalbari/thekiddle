@@ -155,7 +155,7 @@ async function handleEvent(event: Stripe.Event) {
       await supabaseAdmin.from('payment_transactions').insert({
         parent_id: billingCustomer?.parent_id || null,
         provider: 'stripe',
-        provider_payment_id: typeof invoice.payment_intent === 'string' ? invoice.payment_intent : invoice.payment_intent?.id,
+        provider_payment_id: null,
         provider_invoice_id: invoice.id,
         type: 'invoice',
         status: event.type === 'invoice.paid' ? 'paid' : 'failed',
