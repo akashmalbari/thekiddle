@@ -5,6 +5,10 @@ import { requireAdmin } from '@/lib/serverAdminAuth'
 const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
 
+function isTestMode() {
+  return process.env.TEST_MODE === 'true'
+}
+
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin(req)
   if ('error' in auth) return auth.error
@@ -34,6 +38,42 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Newsletter not found or missing PDF' }, { status: 404 })
   }
 
+  const { data: subscribers, error: subscribersError } = await supabaseAdmin
+    .from('parents')
+    .select('email')
+    .not('email', 'is', null)
+
+  if (subscribersError) {
+    return NextResponse.json({ error: 'Unable to fetch subscribers' }, { status: 500 })
+  }
+
+  const productionRecipients = Array.from(new Set((subscribers || []).map((s: any) => s.email).filter(Boolean))) as string[]
+
+  const testMode = isTestMode()
+  const testEmail = process.env.TEST_EMAIL || ''
+
+  if (testMode && !testEmail) {
+    return NextResponse.json({ error: 'TEST_MODE is true but TEST_EMAIL is missing' }, { status: 500 })
+  }
+
+  const recipients = testMode ? [testEmail] : productionRecipients
+
+  const dryRun = req.nextUrl.searchParams.get('dryRun') === 'true'
+  if (dryRun) {
+    return NextResponse.json({
+      mode: testMode ? 'test' : 'production',
+      recipientCount: recipients.length,
+      newsletterTitle: newsletter.title,
+    })
+  }
+
+  console.log('Newsletter send started', {
+    newsletter_id: newsletterId,
+    mode: testMode ? 'test' : 'production',
+    recipient_count: recipients.length,
+    timestamp: new Date().toISOString(),
+  })
+
   await supabaseAdmin
     .from('newsletters')
     .update({ status: 'sending', send_error: null })
@@ -48,22 +88,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Unable to generate PDF link' }, { status: 500 })
   }
 
-  const { data: subscribers, error: subscribersError } = await supabaseAdmin
-    .from('parents')
-    .select('id,email')
-    .not('email', 'is', null)
-
-  if (subscribersError) {
-    await supabaseAdmin.from('newsletters').update({ status: 'failed', send_error: subscribersError.message }).eq('id', newsletterId)
-    return NextResponse.json({ error: 'Unable to fetch subscribers' }, { status: 500 })
-  }
-
-  const uniqueEmails = Array.from(new Set((subscribers || []).map((s: any) => s.email).filter(Boolean)))
-
   let sentCount = 0
   let failedCount = 0
 
-  for (const email of uniqueEmails) {
+  for (const email of recipients) {
     try {
       const html = `
         <div style="font-family: Arial, sans-serif; line-height:1.6; color:#222;">
@@ -97,7 +125,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
           newsletter_id: newsletterId,
           subscriber_email: email,
           status: 'failed',
-          error_message: resendJson?.message || 'Send failed',
+          error_message: `[${testMode ? 'test' : 'production'}] ${resendJson?.message || 'Send failed'}`,
         })
       } else {
         sentCount += 1
@@ -106,6 +134,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
           subscriber_email: email,
           status: 'sent',
           provider_message_id: resendJson?.id || null,
+          error_message: testMode ? '[test] send successful' : null,
         })
       }
     } catch (err: any) {
@@ -114,7 +143,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         newsletter_id: newsletterId,
         subscriber_email: email,
         status: 'failed',
-        error_message: err?.message || 'Unexpected send error',
+        error_message: `[${testMode ? 'test' : 'production'}] ${err?.message || 'Unexpected send error'}`,
       })
     }
   }
@@ -123,7 +152,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     .from('newsletters')
     .update({
       status: failedCount > 0 ? 'failed' : 'sent',
-      recipient_count: uniqueEmails.length,
+      recipient_count: recipients.length,
       sent_count: sentCount,
       failed_count: failedCount,
       sent_at: sentCount > 0 ? new Date().toISOString() : null,
@@ -131,9 +160,19 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     })
     .eq('id', newsletterId)
 
+  console.log('Newsletter send finished', {
+    newsletter_id: newsletterId,
+    mode: testMode ? 'test' : 'production',
+    recipient_count: recipients.length,
+    sent_count: sentCount,
+    failed_count: failedCount,
+    timestamp: new Date().toISOString(),
+  })
+
   return NextResponse.json({
     success: true,
-    recipientCount: uniqueEmails.length,
+    mode: testMode ? 'test' : 'production',
+    recipientCount: recipients.length,
     sentCount,
     failedCount,
   })
