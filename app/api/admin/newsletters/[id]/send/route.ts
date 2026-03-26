@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { requireAdmin } from '@/lib/serverAdminAuth'
+import { getNewsletterSendSettings } from '@/lib/newsletterSettings'
 
 const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
-
-function isTestMode() {
-  return process.env.TEST_MODE === 'true'
-}
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin(req)
@@ -49,11 +46,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   const productionRecipients = Array.from(new Set((subscribers || []).map((s: any) => s.email).filter(Boolean))) as string[]
 
-  const testMode = isTestMode()
-  const testEmail = process.env.TEST_EMAIL || ''
+  const settings = await getNewsletterSendSettings(supabaseAdmin)
+  const testMode = settings.test_mode
+  const testEmail = settings.test_email || ''
 
   if (testMode && !testEmail) {
-    return NextResponse.json({ error: 'TEST_MODE is true but TEST_EMAIL is missing' }, { status: 500 })
+    return NextResponse.json({ error: 'Test mode is enabled but test email is missing in newsletter settings' }, { status: 500 })
   }
 
   const recipients = testMode ? [testEmail] : productionRecipients

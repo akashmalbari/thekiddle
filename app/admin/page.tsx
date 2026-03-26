@@ -515,11 +515,48 @@ export default function AdminPage() {
         {/* NEWSLETTERS */}
         {tab === 'newsletters' && (
           <div>
-            {sendConfig.testMode && (
-              <div style={{ marginBottom: 14, background: '#FFF0EF', border: '2px solid #FFAAA5', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 800, color: '#E07D78' }}>
-                TEST MODE ACTIVE{sendConfig.testEmail ? ` — Emails will only be sent to ${sendConfig.testEmail}` : ''}
+            <div style={{ marginBottom: 14, background: sendConfig.testMode ? '#FFF0EF' : '#E6FAF9', border: `2px solid ${sendConfig.testMode ? '#FFAAA5' : '#6ECDC8'}`, borderRadius: 12, padding: '10px 14px' }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: sendConfig.testMode ? '#E07D78' : '#4AADA8', marginBottom: 8 }}>
+                {sendConfig.testMode ? 'TEST MODE ACTIVE' : 'PRODUCTION MODE ACTIVE'}
+                {sendConfig.testMode && sendConfig.testEmail ? ` — Emails will only be sent to ${sendConfig.testEmail}` : ''}
               </div>
-            )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'center' }}>
+                <input
+                  style={{ ...inp, background: 'white' }}
+                  type="email"
+                  placeholder="test@email.com"
+                  value={sendConfig.testEmail}
+                  onChange={e => setSendConfig(cfg => ({ ...cfg, testEmail: e.target.value }))}
+                />
+                <button
+                  onClick={() => setSendConfig(cfg => ({ ...cfg, testMode: !cfg.testMode }))}
+                  style={{ padding: '9px 14px', borderRadius: 10, border: 'none', background: sendConfig.testMode ? '#FFF8E1' : '#FFF0EF', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Switch to {sendConfig.testMode ? 'Production' : 'Test'}
+                </button>
+                <button
+                  onClick={async () => {
+                    setNewsletterMsg('')
+                    try {
+                      const res = await authFetch('/api/admin/newsletters/send-config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ testMode: sendConfig.testMode, testEmail: sendConfig.testEmail }),
+                      })
+                      const data = await res.json()
+                      if (!res.ok) throw new Error(data.error || 'Unable to save send settings')
+                      setNewsletterMsg('✅ Send settings saved')
+                      await loadSendConfig()
+                    } catch (e: any) {
+                      setNewsletterMsg(`⚠️ ${e.message}`)
+                    }
+                  }}
+                  style={{ padding: '9px 14px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}
+                >
+                  Save Settings
+                </button>
+              </div>
+            </div>
             {newsletterMsg && (
               <div style={{ marginBottom: 14, background: 'white', border: '2px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
                 {newsletterMsg}
