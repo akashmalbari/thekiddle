@@ -12,20 +12,20 @@ type PricingData = {
 
 /* ── LOGO ──────────────────────────────────────────────── */
 function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
-  const s = { sm: { the: 12, main: 24, pencil: 9 }, md: { the: 15, main: 32, pencil: 12 }, lg: { the: 20, main: 48, pencil: 18 } }[size]
+  const dims = {
+    sm: { w: 112, h: 38 },
+    md: { w: 148, h: 50 },
+    lg: { w: 196, h: 66 },
+  }[size]
+
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', lineHeight: 1, userSelect: 'none', textDecoration: 'none' }}>
-      <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: s.the, fontWeight: 800, color: '#FFAAA5', lineHeight: 1, marginBottom: -2 }}>The</span>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: s.main, fontWeight: 800, color: '#FFD166', lineHeight: 1, letterSpacing: '-0.03em' }}>K</span>
-        <svg width={s.pencil} height={s.main * 0.88} viewBox="0 0 20 48" style={{ margin: `0 ${s.main * 0.025}px`, flexShrink: 0 }}>
-          <rect x="5" y="0" width="10" height="7" rx="3.5" fill="#6ECDC8" />
-          <rect x="5" y="7" width="10" height="31" rx="2" fill="#FFAAA5" />
-          <polygon points="5,38 15,38 10,48" fill="#FFD166" />
-        </svg>
-        <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: s.main, fontWeight: 800, color: '#FFD166', lineHeight: 1, letterSpacing: '-0.03em' }}>ddle</span>
-      </div>
-    </div>
+    <img
+      src="/logo-wordmark.svg"
+      alt="The Kiddle"
+      width={dims.w}
+      height={dims.h}
+      style={{ display: 'block', width: dims.w, height: dims.h, objectFit: 'contain' }}
+    />
   )
 }
 
@@ -417,7 +417,7 @@ export default function HomePage() {
           <p style={{ fontSize: isMobile ? 15 : 16, color: 'var(--body)', marginBottom: 28, fontWeight: 600, lineHeight: 1.7 }}>
             Curious about what Kiddle offers? Check out a sample newsletter to see the fun activities your child will enjoy!
           </p>
-<a href="/TheKiddle_Newsletter_Template_v2.pdf" target="_blank" rel="noopener noreferrer"
+<a href="/TheKiddle_Newsletter.pdf" target="_blank" rel="noopener noreferrer"
   style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#FFF0EF', color: '#E07D78', border: '2px solid #FFAAA5', borderRadius: 'var(--r-full)', padding: '13px 28px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 15, textDecoration: 'none', transition: 'all 0.2s' }}
   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FFAAA5'; (e.currentTarget as HTMLElement).style.color = 'white' }}
   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FFF0EF'; (e.currentTarget as HTMLElement).style.color = '#E07D78' }}>
@@ -579,7 +579,7 @@ export default function HomePage() {
                 { label: 'Features', action: () => scrollTo('features') },
                 { label: 'How It Works', action: () => scrollTo('how-it-works') },
                 { label: 'Pricing', action: () => scrollTo('pricing') },
-                { label: 'Sample Newsletter', action: () => window.open('/TheKiddle_Newsletter_Template_v2.pdf', '_blank') },
+                { label: 'Sample Newsletter', action: () => window.open('/TheKiddle_Newsletter.pdf', '_blank') },
               ].map(l => (
                 <button key={l.label} onClick={l.action} style={{ display: 'block', width: '100%', fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', padding: 0, fontFamily: "'Nunito',sans-serif", textAlign: 'left' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'white'}
