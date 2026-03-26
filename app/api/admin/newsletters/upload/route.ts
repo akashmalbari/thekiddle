@@ -26,10 +26,28 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer()
     const supabaseAdmin = getSupabaseAdmin()
 
-    const { error } = await supabaseAdmin.storage.from(BUCKET).upload(path, bytes, {
+    let { error } = await supabaseAdmin.storage.from(BUCKET).upload(path, bytes, {
       contentType: 'application/pdf',
       upsert: false,
     })
+
+    if (error?.message?.toLowerCase().includes('bucket not found')) {
+      const { error: bucketError } = await supabaseAdmin.storage.createBucket(BUCKET, {
+        public: false,
+        fileSizeLimit: 15 * 1024 * 1024,
+        allowedMimeTypes: ['application/pdf'],
+      })
+
+      if (bucketError && !bucketError.message.toLowerCase().includes('already exists')) {
+        return NextResponse.json({ error: bucketError.message }, { status: 500 })
+      }
+
+      const retry = await supabaseAdmin.storage.from(BUCKET).upload(path, bytes, {
+        contentType: 'application/pdf',
+        upsert: false,
+      })
+      error = retry.error
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
