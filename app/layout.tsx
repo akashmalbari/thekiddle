@@ -4,7 +4,11 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'The Kiddle – Screen-Free Activities for Kids Ages 3–5',
   description: 'Weekly activity-packed newsletters with offline, screen-free activities for curious kids aged 3–5. Creative, educational, and 100% fun.',
-  icons: { icon: '/favicon.ico' },
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

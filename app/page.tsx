@@ -581,23 +581,17 @@ export default function HomePage() {
                 { label: 'Pricing', action: () => scrollTo('pricing') },
                 { label: 'Sample Newsletter', action: () => window.open('/TheKiddle_Newsletter_Template_v2.pdf', '_blank') },
               ].map(l => (
-                <button key={l.label} onClick={l.action} style={{ fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', padding: 0, fontFamily: "'Nunito',sans-serif", textAlign: 'left' }}
+                <button key={l.label} onClick={l.action} style={{ display: 'block', width: '100%', fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', padding: 0, fontFamily: "'Nunito',sans-serif", textAlign: 'left' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'white'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'}>{l.label}</button>
               ))}
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#FFD166', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 16 }}>Support</div>
-              {[
-                { label: 'FAQ', action: () => scrollTo('contact') },
-                { label: 'Contact Us', action: () => scrollTo('contact') },
-                { label: 'Privacy Policy', action: () => scrollTo('contact') },
-                { label: 'Terms of Service', action: () => scrollTo('contact') },
-              ].map(l => (
-                <button key={l.label} onClick={l.action} style={{ fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', padding: 0, fontFamily: "'Nunito',sans-serif", textAlign: 'left' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'white'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'}>{l.label}</button>
-              ))}
+              <Link href="/faq" style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>FAQ</Link>
+              <button onClick={() => scrollTo('contact')} style={{ display: 'block', width: '100%', fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', padding: 0, fontFamily: "'Nunito',sans-serif", textAlign: 'left' }}>Contact Us</button>
+              <Link href="/privacy-policy" style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Privacy Policy</Link>
+              <Link href="/terms-of-service" style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Terms of Service</Link>
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, textAlign: 'center' }}>
