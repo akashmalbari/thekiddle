@@ -10,9 +10,7 @@ export function getStripe() {
     throw new Error('Missing STRIPE_SECRET_KEY')
   }
 
-  stripeClient = new Stripe(stripeSecretKey, {
-    apiVersion: '2025-02-24.acacia',
-  })
+  stripeClient = new Stripe(stripeSecretKey)
 
   return stripeClient
 }
