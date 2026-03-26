@@ -7,11 +7,21 @@ const PRICE_BY_PLAN: Record<string, string | undefined> = {
   yearly: process.env.STRIPE_PRICE_YEARLY_USD,
 }
 
-const appUrl = process.env.APP_URL || 'http://localhost:3000'
+function getAppUrl(req: NextRequest) {
+  if (process.env.APP_URL) return process.env.APP_URL
+
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host')
+  const proto = req.headers.get('x-forwarded-proto') || 'https'
+
+  if (host) return `${proto}://${host}`
+
+  return 'http://localhost:3000'
+}
 
 export async function POST(req: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin()
   const stripe = getStripe()
+  const appUrl = getAppUrl(req)
   try {
     const { parentName, email, childName, childAge, plan } = await req.json()
 
