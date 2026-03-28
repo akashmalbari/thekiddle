@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/serverAdminAuth'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import { getNewsletterSendSettings } from '@/lib/newsletterSettings'
+import { getInvalidEmails, getNewsletterSendSettings, parseRecipientEmails } from '@/lib/newsletterSettings'
 
 export async function GET(req: NextRequest) {
   const auth = await requireAdmin(req)
@@ -24,9 +24,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const testMode = !!body.testMode
     const testEmail = typeof body.testEmail === 'string' ? body.testEmail.trim() : ''
+    const parsedTestEmails = parseRecipientEmails(testEmail)
 
-    if (testMode && !testEmail) {
-      return NextResponse.json({ error: 'Recepient email(s) is required when selected mode is enabled' }, { status: 400 })
+    if (testMode && parsedTestEmails.length === 0) {
+      return NextResponse.json({ error: 'Recipient email(s) are required when selected mode is enabled' }, { status: 400 })
+    }
+
+    const invalidEmails = getInvalidEmails(parsedTestEmails)
+    if (invalidEmails.length > 0) {
+      return NextResponse.json(
+        { error: `Invalid recipient email(s): ${invalidEmails.join(', ')}` },
+        { status: 400 }
+      )
     }
 
     const supabaseAdmin = getSupabaseAdmin()

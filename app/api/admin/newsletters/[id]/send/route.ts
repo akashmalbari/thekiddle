@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { requireAdmin } from '@/lib/serverAdminAuth'
-import { getNewsletterSendSettings } from '@/lib/newsletterSettings'
+import { getInvalidEmails, getNewsletterSendSettings, parseRecipientEmails } from '@/lib/newsletterSettings'
 
 const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
@@ -49,12 +49,21 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const settings = await getNewsletterSendSettings(supabaseAdmin)
   const testMode = settings.test_mode
   const testEmail = settings.test_email || ''
+  const selectedRecipients = parseRecipientEmails(testEmail)
 
-  if (testMode && !testEmail) {
-    return NextResponse.json({ error: 'Selected mode is enabled but recepient email(s) is missing in newsletter settings' }, { status: 500 })
+  if (testMode && selectedRecipients.length === 0) {
+    return NextResponse.json({ error: 'Selected mode is enabled but recipient email(s) are missing in newsletter settings' }, { status: 500 })
   }
 
-  const recipients = testMode ? [testEmail] : productionRecipients
+  const invalidSelectedEmails = getInvalidEmails(selectedRecipients)
+  if (testMode && invalidSelectedEmails.length > 0) {
+    return NextResponse.json(
+      { error: `Selected mode has invalid recipient email(s): ${invalidSelectedEmails.join(', ')}` },
+      { status: 500 }
+    )
+  }
+
+  const recipients = testMode ? selectedRecipients : productionRecipients
 
   const dryRun = req.nextUrl.searchParams.get('dryRun') === 'true'
   if (dryRun) {
@@ -93,11 +102,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     try {
       const html = `
         <div style="font-family: Arial, sans-serif; line-height:1.6; color:#222;">
-          <h2>${newsletter.title}</h2>
-          <p>Hi there,</p>
-          <p>Your latest The Kiddle newsletter is ready.</p>
-          <p><a href="${signed.signedUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open Newsletter PDF</a></p>
-          <p>Enjoy!<br/>The Kiddle Team</p>
+          <p>Hi,</p>
+          <p>Your new Kiddle edition is ready!</p>
+          <p>This week, we’ve put together a set of fun, thoughtful activities designed to spark curiosity, challenge young minds, and create meaningful moments together.</p>
+          <p><a href="${signed.signedUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open this week’s Kiddle</a></p>
+          <p>Take your time with it—there’s no rush. Even 30–40 minutes of focused, joyful engagement can make a big difference.</p>
+          <p>See you next week!</p>
+          <p>The Kiddle Team</p>
         </div>
       `
 
@@ -110,7 +121,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         body: JSON.stringify({
           from: fromEmail,
           to: [email],
-          subject: newsletter.subject,
+          subject: 'This Week’s Kiddle is Here',
           html,
         }),
       })

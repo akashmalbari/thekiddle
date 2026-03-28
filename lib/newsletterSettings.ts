@@ -5,6 +5,25 @@ export type NewsletterSendSettings = {
   test_email: string | null
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+export function parseRecipientEmails(raw: string | null | undefined): string[] {
+  if (!raw) return []
+
+  return Array.from(
+    new Set(
+      raw
+        .split(/[;,\n]/)
+        .map((email) => email.trim())
+        .filter(Boolean)
+    )
+  )
+}
+
+export function getInvalidEmails(emails: string[]): string[] {
+  return emails.filter((email) => !EMAIL_REGEX.test(email))
+}
+
 export async function getNewsletterSendSettings(supabaseAdmin: SupabaseClient): Promise<NewsletterSendSettings> {
   const { data } = await supabaseAdmin
     .from('newsletter_settings')

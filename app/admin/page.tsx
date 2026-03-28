@@ -261,7 +261,7 @@ export default function AdminPage() {
       if (!dryRunRes.ok) throw new Error(dryRunData.error || 'Unable to prepare send')
 
       const confirmation = window.confirm(
-        `Send newsletter now?\n\nTitle: ${dryRunData.newsletterTitle || newsletter.title}\nRecipients: ${dryRunData.recipientCount}\nMode: ${dryRunData.mode === 'test' ? 'TEST' : 'PRODUCTION'}`
+        `Send newsletter now?\n\nTitle: ${dryRunData.newsletterTitle || newsletter.title}\nRecipients: ${dryRunData.recipientCount}\nMode: ${dryRunData.mode === 'test' ? 'SELECTED' : 'PRODUCTION'}`
       )
       if (!confirmation) return
 
@@ -523,8 +523,8 @@ export default function AdminPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'center' }}>
                 <input
                   style={{ ...inp, background: 'white' }}
-                  type="email"
-                  placeholder="test@email.com"
+                  type="text"
+                  placeholder="test1@email.com, test2@email.com"
                   value={sendConfig.testEmail}
                   onChange={e => setSendConfig(cfg => ({ ...cfg, testEmail: e.target.value }))}
                 />
