@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg viewBox="0 0 64 64" role="img" version="1.2" baseProfile="tiny-ps" xmlns="http://www.w3.org/2000/svg">
+  <title>bimi-svg-tiny-12-ps</title>
+  <rect x="24" y="8" width="16" height="10" rx="5" fill="#6ECDC8"/>
+  <rect x="24" y="18" width="16" height="34" rx="3" fill="#FFAAA5"/>
+  <polygon points="24,52 40,52 32,62" fill="#FFD166"/>
+</svg>

@@ -470,7 +470,7 @@ export default function HomePage() {
           </div>
           <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
             Pricing shown for {pricing.countryName} ({pricing.currencyCode}). Questions?{' '}
-            <a href="mailto:hello@thekiddle.com" style={{ color: '#FFAAA5', textDecoration: 'none', fontWeight: 800 }}>Contact us</a>
+            <a href="/#contact" style={{ color: '#E07D78', fontWeight: 800, textDecoration: 'none' }}>Contact Us</a>
           </p>
         </div>
       </section>
