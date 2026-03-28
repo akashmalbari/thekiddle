@@ -408,23 +408,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ SAMPLE CTA ════════════════════════════════════ */}
-      <section style={{ padding: isMobile ? '48px 16px' : isTablet ? '56px 24px' : '60px 40px', background: 'white', borderTop: '2px solid var(--border)', borderBottom: '2px solid var(--border)' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }} className="wiggle">📮</div>
-          <h2 style={{ fontSize: isMobile ? 28 : 30, fontWeight: 800, color: 'var(--dark)', marginBottom: 12 }}>See What&apos;s Inside</h2>
-          <p style={{ fontSize: isMobile ? 15 : 16, color: 'var(--body)', marginBottom: 28, fontWeight: 600, lineHeight: 1.7 }}>
-            Curious about what Kiddle offers? Check out a sample newsletter to see the fun activities your child will enjoy!
-          </p>
-<a href="/TheKiddle_Newsletter.pdf" target="_blank" rel="noopener noreferrer"
-  style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#FFF0EF', color: '#E07D78', border: '2px solid #FFAAA5', borderRadius: 'var(--r-full)', padding: '13px 28px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 15, textDecoration: 'none', transition: 'all 0.2s' }}
-  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FFAAA5'; (e.currentTarget as HTMLElement).style.color = 'white' }}
-  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FFF0EF'; (e.currentTarget as HTMLElement).style.color = '#E07D78' }}>
-  View Sample Newsletter 📄
-</a>
-          <p style={{ marginTop: 12, fontSize: 12, color: 'var(--hint)', fontWeight: 700 }}>No signup required · Instant access</p>
-        </div>
-      </section>
+
 
       {/* ══ PRICING ════════════════════════════════════════ */}
       <section id="pricing" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'var(--cream)' }}>
