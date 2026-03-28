@@ -1,4 +1,4 @@
-RESEND_API_URL = 'https://api.resend.com/emails'
+const RESEND_API_URL = 'https://api.resend.com/emails'
 
 function normalizeBaseUrl(url: string) {
   const trimmed = url.trim()
