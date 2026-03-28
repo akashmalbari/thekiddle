@@ -36,7 +36,6 @@ type Subscriber = {
 type NewsletterRecord = {
   id: number
   title: string
-  subject: string
   issue_date: string
   pdf_path: string | null
   status: 'draft' | 'uploaded' | 'sending' | 'sent' | 'failed'
@@ -99,7 +98,6 @@ export default function AdminPage() {
   const [newsletterLoading, setNewsletterLoading] = useState(false)
   const [newsletterMsg, setNewsletterMsg] = useState('')
   const [newsletterTitle, setNewsletterTitle] = useState('')
-  const [newsletterSubject, setNewsletterSubject] = useState('')
   const [newsletterIssueDate, setNewsletterIssueDate] = useState('')
   const [newsletterFile, setNewsletterFile] = useState<File | null>(null)
   const [uploadingPdf, setUploadingPdf] = useState(false)
@@ -195,8 +193,8 @@ export default function AdminPage() {
 
   const saveNewsletter = async () => {
     setNewsletterMsg('')
-    if (!newsletterTitle.trim() || !newsletterSubject.trim() || !newsletterIssueDate || !newsletterFile) {
-      setNewsletterMsg('⚠️ Title, subject, issue date, and PDF are required')
+    if (!newsletterTitle.trim() || !newsletterIssueDate || !newsletterFile) {
+      setNewsletterMsg('⚠️ Title, issue date, and PDF are required')
       return
     }
 
@@ -219,7 +217,6 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newsletterTitle,
-          subject: newsletterSubject,
           issueDate: newsletterIssueDate,
           pdfPath: uploadData.path,
         }),
@@ -229,7 +226,6 @@ export default function AdminPage() {
       if (!createRes.ok) throw new Error(createData.error || 'Unable to save newsletter')
 
       setNewsletterTitle('')
-      setNewsletterSubject('')
       setNewsletterIssueDate('')
       setNewsletterFile(null)
       setNewsletterMsg('✅ Newsletter uploaded and saved')
@@ -572,9 +568,8 @@ export default function AdminPage() {
 
             <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: 16, marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Upload Newsletter PDF</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
                 <input style={{ ...inp, background: 'white' }} placeholder="Title" value={newsletterTitle} onChange={e => setNewsletterTitle(e.target.value)} />
-                <input style={{ ...inp, background: 'white' }} placeholder="Email Subject" value={newsletterSubject} onChange={e => setNewsletterSubject(e.target.value)} />
                 <input style={{ ...inp, background: 'white' }} type="date" value={newsletterIssueDate} onChange={e => setNewsletterIssueDate(e.target.value)} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -596,7 +591,7 @@ export default function AdminPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--dark)' }}>{n.title}</div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>Issue: {n.issue_date} · Subject: {n.subject}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>Issue: {n.issue_date}</div>
                         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--hint)' }}>Status: {n.status}{n.sent_at ? ` · Sent: ${new Date(n.sent_at).toLocaleString()}` : ''}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   const { data: newsletter, error: newsletterError } = await supabaseAdmin
     .from('newsletters')
-    .select('id,title,subject,pdf_path,status')
+    .select('id,title,pdf_path,status')
     .eq('id', newsletterId)
     .maybeSingle()
 

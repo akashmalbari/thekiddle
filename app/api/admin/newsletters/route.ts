@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin()
   const { data, error } = await supabaseAdmin
     .from('newsletters')
-    .select('id,title,subject,issue_date,pdf_path,status,created_at,sent_at')
+    .select('id,title,issue_date,pdf_path,status,created_at,sent_at')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -24,9 +24,9 @@ export async function POST(req: NextRequest) {
   if ('error' in auth) return auth.error
 
   try {
-    const { title, subject, issueDate, pdfPath } = await req.json()
+    const { title, issueDate, pdfPath } = await req.json()
 
-    if (!title || !subject || !issueDate || !pdfPath) {
+    if (!title || !issueDate || !pdfPath) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -35,12 +35,11 @@ export async function POST(req: NextRequest) {
       .from('newsletters')
       .insert({
         title,
-        subject,
         issue_date: issueDate,
         pdf_path: pdfPath,
         status: 'uploaded',
       })
-      .select('id,title,subject,issue_date,pdf_path,status,created_at,sent_at')
+      .select('id,title,issue_date,pdf_path,status,created_at,sent_at')
       .single()
 
     if (error) {

@@ -129,7 +129,6 @@ on conflict (id) do nothing;
 create table public.newsletters (
   id bigint generated always as identity primary key,
   title text not null,
-  subject text not null,
   issue_date date not null,
   pdf_path text,
   status public.newsletter_status_enum not null default 'draft',
