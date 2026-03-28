@@ -486,7 +486,7 @@ export default function HomePage() {
             </div>
           </div>
           <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
-            Pricing shown for {pricing.countryName} ({pricing.currencyCode}). All plans include a 7-day money-back guarantee. Questions?{' '}
+            Pricing shown for {pricing.countryName} ({pricing.currencyCode}). Questions?{' '}
             <a href="mailto:hello@thekiddle.com" style={{ color: '#FFAAA5', textDecoration: 'none', fontWeight: 800 }}>Contact us</a>
           </p>
         </div>
@@ -544,7 +544,7 @@ export default function HomePage() {
             <EmailCapture />
           </div>
           <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', fontSize: 13, fontWeight: 700, color: 'rgba(26,18,8,0.6)' }}>
-            {['✓ Cancel Anytime', '✓ No Commitment', '✓ Money-Back Guarantee'].map((t,i) => <span key={i}>{t}</span>)}
+            {['✓ Cancel Anytime', '✓ No Commitment'].map((t,i) => <span key={i}>{t}</span>)}
           </div>
         </div>
       </section>

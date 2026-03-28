@@ -1,16 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="The Kiddle logo">
-  <rect width="512" height="512" fill="#e9e9e9"/>
-
-  <!-- 'The' -->
-  <text x="72" y="190" font-family="'Baloo 2', 'Comic Sans MS', cursive" font-size="64" font-weight="700" fill="#F29D98">The</text>
-
-  <!-- Kiddle text (yellow) -->
-  <text x="70" y="345" font-family="'Baloo 2', 'Comic Sans MS', cursive" font-size="170" font-weight="700" fill="#F4C85A">K</text>
-  <text x="182" y="345" font-family="'Baloo 2', 'Comic Sans MS', cursive" font-size="170" font-weight="700" fill="#F4C85A">ddle</text>
-
-  <!-- Pencil replacing i -->
-  <rect x="226" y="245" width="28" height="118" fill="#F29D98"/>
-  <rect x="226" y="221" width="28" height="24" rx="10" fill="#89CEC5"/>
-  <polygon points="226,363 254,363 240,389" fill="#F29D98"/>
-  <rect x="226" y="242" width="28" height="4" fill="#e9e9e9" opacity="0.8"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="The Kiddle pencil favicon">
+  <rect x="24" y="8" width="16" height="10" rx="5" fill="#6ECDC8" />
+  <rect x="24" y="18" width="16" height="34" rx="3" fill="#FFAAA5" />
+  <polygon points="24,52 40,52 32,62" fill="#FFD166" />
 </svg>
