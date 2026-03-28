@@ -278,6 +278,8 @@ async function handleEvent(event: Stripe.Event) {
     case 'invoice.paid':
     case 'invoice.payment_failed': {
       const invoice = event.data.object as Stripe.Invoice
+      const invoiceSubscription = (invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription | null })
+        .subscription
       const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
       if (!customerId) {
         logWebhookDebug('invoice.skipped', {
@@ -314,13 +316,13 @@ async function handleEvent(event: Stripe.Event) {
         invoiceId: invoice.id,
         customerId,
         parentId: billingCustomer?.parent_id || null,
-        hasSubscription: !!invoice.subscription,
+        hasSubscription: !!invoiceSubscription,
       })
 
       // Safety net: keep parent access/status in sync even if subscription events arrived out of order.
-      if (billingCustomer?.parent_id && invoice.subscription) {
+      if (billingCustomer?.parent_id && invoiceSubscription) {
         const subscriptionId =
-          typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription.id
+          typeof invoiceSubscription === 'string' ? invoiceSubscription : invoiceSubscription.id
         const stripe = getStripe()
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
 
