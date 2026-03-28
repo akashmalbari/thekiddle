@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
@@ -93,22 +94,56 @@ async function upsertSubscription(parentId: string, billingCustomerId: number | 
   return data?.id || null
 }
 
+function logWebhookDebug(stage: string, payload: Record<string, unknown>) {
+  console.log('[billing-webhook]', stage, {
+    timestamp: new Date().toISOString(),
+    ...payload,
+  })
+}
+
 async function handleEvent(event: Stripe.Event) {
   const supabaseAdmin = getSupabaseAdmin()
+
+  logWebhookDebug('event.received', {
+    eventId: event.id,
+    eventType: event.type,
+  })
 
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
       const parentId = session.client_reference_id || session.metadata?.parent_id
-      if (!parentId) return
+      if (!parentId) {
+        logWebhookDebug('checkout.session.completed.skipped', {
+          reason: 'missing_parent_id',
+          eventId: event.id,
+        })
+        return
+      }
 
       const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id
-      if (!customerId) return
+      if (!customerId) {
+        logWebhookDebug('checkout.session.completed.skipped', {
+          reason: 'missing_customer_id',
+          eventId: event.id,
+          parentId,
+        })
+        return
+      }
 
+      logWebhookDebug('checkout.session.completed.start', {
+        eventId: event.id,
+        parentId,
+        customerId,
+        subscriptionId:
+          typeof session.subscription === 'string' ? session.subscription : session.subscription?.id || null,
+      })
+
+      const checkoutEmail = session.customer_details?.email || null
       const billingCustomerId = await upsertBillingCustomer(
         parentId,
         customerId,
-        session.customer_details?.email || null,
+        checkoutEmail,
         session.customer_details?.address?.country || null
       )
 
@@ -118,6 +153,40 @@ async function handleEvent(event: Stripe.Event) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         await upsertSubscription(parentId, billingCustomerId, subscription, session.customer_details?.address?.country || null)
         await markParentAccess(parentId, subscription.status, session.customer_details?.address?.country || undefined)
+
+        logWebhookDebug('checkout.session.completed.parent_updated', {
+          eventId: event.id,
+          parentId,
+          subscriptionId,
+          subscriptionStatus: subscription.status,
+          countryCode: session.customer_details?.address?.country || null,
+        })
+
+        // Keep paid signup flow aligned with UI promise: send sample/welcome email after successful checkout.
+        if (checkoutEmail) {
+          try {
+            await sendWelcomeEmail(checkoutEmail)
+            logWebhookDebug('checkout.session.completed.sample_sent', {
+              eventId: event.id,
+              parentId,
+              email: checkoutEmail,
+            })
+          } catch (sampleErr: any) {
+            // Don't fail webhook processing for ancillary email failure.
+            logWebhookDebug('checkout.session.completed.sample_send_failed', {
+              eventId: event.id,
+              parentId,
+              email: checkoutEmail,
+              error: sampleErr?.message || 'unknown_error',
+            })
+          }
+        } else {
+          logWebhookDebug('checkout.session.completed.sample_skipped', {
+            eventId: event.id,
+            parentId,
+            reason: 'missing_checkout_email',
+          })
+        }
       }
       break
     }
@@ -127,7 +196,15 @@ async function handleEvent(event: Stripe.Event) {
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription
       const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
-      if (!customerId) return
+      if (!customerId) {
+        logWebhookDebug('customer.subscription.skipped', {
+          reason: 'missing_customer_id',
+          eventId: event.id,
+          eventType: event.type,
+          subscriptionId: subscription.id,
+        })
+        return
+      }
 
       const { data: billingCustomer } = await supabaseAdmin
         .from('billing_customers')
@@ -136,10 +213,65 @@ async function handleEvent(event: Stripe.Event) {
         .eq('provider_customer_id', customerId)
         .maybeSingle()
 
-      if (!billingCustomer?.parent_id) return
+      // Fallback for out-of-order webhook delivery where billing_customers row isn't there yet
+      // but checkout already attached parent_id into subscription metadata.
+      const metadataParentId = subscription.metadata?.parent_id || null
+      const parentId = billingCustomer?.parent_id || metadataParentId
+      if (!parentId) {
+        logWebhookDebug('customer.subscription.skipped', {
+          reason: 'missing_parent_mapping',
+          eventId: event.id,
+          eventType: event.type,
+          subscriptionId: subscription.id,
+          customerId,
+          hasBillingCustomer: !!billingCustomer,
+          metadataParentId,
+        })
+        return
+      }
 
-      await upsertSubscription(billingCustomer.parent_id, billingCustomer.id, subscription, billingCustomer.country_code)
-      await markParentAccess(billingCustomer.parent_id, subscription.status, billingCustomer.country_code)
+      logWebhookDebug('customer.subscription.mapping', {
+        eventId: event.id,
+        eventType: event.type,
+        subscriptionId: subscription.id,
+        customerId,
+        parentId,
+        parentIdSource: billingCustomer?.parent_id ? 'billing_customers' : 'subscription.metadata.parent_id',
+        billingCustomerId: billingCustomer?.id || null,
+      })
+
+      let billingCustomerId = billingCustomer?.id || null
+      let countryCode = billingCustomer?.country_code || null
+
+      if (!billingCustomerId) {
+        const stripe = getStripe()
+        const customer = await stripe.customers.retrieve(customerId)
+        logWebhookDebug('customer.subscription.billing_customer_fallback', {
+          eventId: event.id,
+          subscriptionId: subscription.id,
+          customerId,
+          parentId,
+          usedFallback: true,
+        })
+        const customerEmail = customer && !('deleted' in customer) ? customer.email : null
+        const customerCountry =
+          customer && !('deleted' in customer) ? customer.address?.country || null : null
+
+        billingCustomerId = await upsertBillingCustomer(parentId, customerId, customerEmail, customerCountry)
+        countryCode = customerCountry
+      }
+
+      await upsertSubscription(parentId, billingCustomerId, subscription, countryCode)
+      await markParentAccess(parentId, subscription.status, countryCode)
+
+      logWebhookDebug('customer.subscription.parent_updated', {
+        eventId: event.id,
+        eventType: event.type,
+        parentId,
+        subscriptionId: subscription.id,
+        subscriptionStatus: subscription.status,
+        countryCode,
+      })
       break
     }
 
@@ -147,11 +279,19 @@ async function handleEvent(event: Stripe.Event) {
     case 'invoice.payment_failed': {
       const invoice = event.data.object as Stripe.Invoice
       const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
-      if (!customerId) return
+      if (!customerId) {
+        logWebhookDebug('invoice.skipped', {
+          reason: 'missing_customer_id',
+          eventId: event.id,
+          eventType: event.type,
+          invoiceId: invoice.id,
+        })
+        return
+      }
 
       const { data: billingCustomer } = await supabaseAdmin
         .from('billing_customers')
-        .select('parent_id')
+        .select('parent_id,country_code')
         .eq('provider', 'stripe')
         .eq('provider_customer_id', customerId)
         .maybeSingle()
@@ -167,6 +307,38 @@ async function handleEvent(event: Stripe.Event) {
         currency_code: (invoice.currency || 'usd').toUpperCase(),
         raw_metadata: invoice as unknown as Record<string, unknown>,
       })
+
+      logWebhookDebug('invoice.recorded', {
+        eventId: event.id,
+        eventType: event.type,
+        invoiceId: invoice.id,
+        customerId,
+        parentId: billingCustomer?.parent_id || null,
+        hasSubscription: !!invoice.subscription,
+      })
+
+      // Safety net: keep parent access/status in sync even if subscription events arrived out of order.
+      if (billingCustomer?.parent_id && invoice.subscription) {
+        const subscriptionId =
+          typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription.id
+        const stripe = getStripe()
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+
+        await markParentAccess(
+          billingCustomer.parent_id,
+          subscription.status,
+          billingCustomer.country_code || undefined
+        )
+
+        logWebhookDebug('invoice.parent_updated_via_subscription', {
+          eventId: event.id,
+          eventType: event.type,
+          invoiceId: invoice.id,
+          parentId: billingCustomer.parent_id,
+          subscriptionId,
+          subscriptionStatus: subscription.status,
+        })
+      }
       break
     }
 

@@ -90,6 +90,12 @@ export async function POST(req: NextRequest) {
         parent_id: parent.id,
         plan: selectedPlan,
       },
+      subscription_data: {
+        metadata: {
+          parent_id: parent.id,
+          plan: selectedPlan,
+        },
+      },
     })
 
     return NextResponse.json({ url: session.url })
