@@ -74,8 +74,7 @@ function EmailCapture({ onSuccess }: { onSuccess?: (email: string) => void }) {
   if (done) return (
     <div style={{ background: '#E6FAF9', border: '2px solid #6ECDC8', borderRadius: 'var(--r-lg)', padding: '18px 24px', textAlign: 'center' }} className="pop-in">
       <div style={{ fontSize: 32, marginBottom: 6 }}>🎉</div>
-      <div style={{ fontWeight: 800, fontSize: 17, color: '#2C2016' }}>You&apos;re in! Check your inbox.</div>
-      <div style={{ fontSize: 14, color: 'var(--muted)', marginTop: 4, fontWeight: 600 }}>Your first newsletter arrives next week!</div>
+      <div style={{ fontWeight: 800, fontSize: 17, color: '#2C2016' }}>You&apos;re in! Check your inbox for a sample Kiddle.</div>
     </div>
   )
 
@@ -86,7 +85,7 @@ function EmailCapture({ onSuccess }: { onSuccess?: (email: string) => void }) {
           placeholder="Enter your email address"
           style={{ flex: 1, border: 'none', outline: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 600, color: 'var(--dark)', background: 'transparent', minWidth: 180 }} />
         <YellowBtn onClick={submit} style={{ borderRadius: 'var(--r-full)', padding: '11px 28px', fontSize: 15 }}>
-          {loading ? '⏳' : 'Get Started Free →'}
+          {loading ? '⏳' : 'Get a Sample Kiddle For Free →'}
         </YellowBtn>
       </div>
       {error && <p style={{ color: '#E07D78', fontSize: 13, fontWeight: 700, marginTop: 8, paddingLeft: 8 }}>⚠️ {error}</p>}
