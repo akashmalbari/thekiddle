@@ -1,8 +1,16 @@
 const RESEND_API_URL = 'https://api.resend.com/emails'
 
+function normalizeBaseUrl(url: string) {
+  const trimmed = url.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://${trimmed}`
+}
+
 function resolveAppBaseUrl() {
-  if (process.env.APP_URL) return process.env.APP_URL
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
+  const explicit = normalizeBaseUrl(process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || '')
+  if (explicit) return explicit
+
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
   return 'http://localhost:3000'
 }
@@ -16,7 +24,7 @@ export async function sendWelcomeEmail(recipientEmail: string) {
   }
 
   const appBaseUrl = resolveAppBaseUrl().replace(/\/$/, '')
-  const sampleNewsletterUrl = `${appBaseUrl}/TheKiddle_Newsletter.pdf`
+  const sampleNewsletterUrl = `${appBaseUrl}/sample-newsletter`
 
   const html = `
     <div style="font-family: Arial, sans-serif; line-height:1.6; color:#222;">

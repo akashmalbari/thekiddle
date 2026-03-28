@@ -100,9 +100,18 @@ function RegisterInner() {
 
   useEffect(() => {
     const billingStatus = params.get('billing')
+    const sessionId = params.get('session_id')
+
     if (billingStatus === 'success') {
+      if (sessionId) {
+        fetch(`/api/billing/confirm?session_id=${encodeURIComponent(sessionId)}`)
+          .catch(() => {
+            // webhook may still complete confirmation; UI remains optimistic
+          })
+      }
       setDone(true)
     }
+
     if (billingStatus === 'cancelled') {
       setError('Payment was cancelled. You can try again anytime.')
       setStep(2)
