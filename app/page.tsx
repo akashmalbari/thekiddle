@@ -411,7 +411,7 @@ export default function HomePage() {
 
 
       {/* ══ PRICING ════════════════════════════════════════ */}
-      <section id="pricing" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'var(--cream)' }}>
+      <section id="pricing" style={{ padding: isMobile ? '64px 16px' : isTablet ? '72px 24px' : '88px 40px', background: 'var(--cream)', borderTop: '2px solid var(--border)', borderBottom: '2px solid var(--border)' }}>
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <Tag color="yellow">Simple Pricing</Tag>
