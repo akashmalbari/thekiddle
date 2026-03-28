@@ -38,6 +38,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const { data: subscribers, error: subscribersError } = await supabaseAdmin
     .from('parents')
     .select('email')
+    .eq('subscriber_state', 'active')
     .not('email', 'is', null)
 
   if (subscribersError) {

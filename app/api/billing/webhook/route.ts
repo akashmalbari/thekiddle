@@ -12,12 +12,16 @@ function extractSubscriptionPlanCode(subscription: Stripe.Subscription): 'monthl
 
 async function markParentAccess(parentId: string, status: string, countryCode?: string) {
   const paidStatuses = new Set(['active', 'trialing'])
+  const isPaid = paidStatuses.has(status)
   const supabaseAdmin = getSupabaseAdmin()
 
   await supabaseAdmin
     .from('parents')
     .update({
-      access_tier: paidStatuses.has(status) ? 'paid' : 'free',
+      access_tier: isPaid ? 'paid' : 'free',
+      subscriber_state: isPaid ? 'active' : 'unsubscribed',
+      subscribed_at: isPaid ? new Date().toISOString() : null,
+      unsubscribed_at: isPaid ? null : new Date().toISOString(),
       subscription_status: status,
       billing_country_code: countryCode || null,
     })

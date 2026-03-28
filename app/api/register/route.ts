@@ -8,17 +8,23 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { parentName, email, childName, childAge, plan } = await req.json()
+    const { parentName, email, childAge } = await req.json()
 
     if (!parentName || !email || !email.includes('@')) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Upsert parent
     const { data: parent, error: parentError } = await supabase
       .from('parents')
       .upsert(
-        { name: parentName, parent_name: parentName, email },
+        {
+          name: parentName,
+          parent_name: parentName,
+          email,
+          subscriber_state: 'active',
+          subscribed_at: new Date().toISOString(),
+          unsubscribed_at: null,
+        },
         { onConflict: 'email', ignoreDuplicates: false }
       )
       .select('id')
@@ -31,14 +37,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Insert child if provided
-    if (childName && childAge && parent?.id) {
-      await supabase.from('children').insert({
-        parent_id: parent.id,
-        name: childName,
-        age_value: parseInt(childAge),
-        age_unit: 'years',
-      })
+    if (childAge && parent?.id) {
+      const parsedAge = Number(childAge)
+      if (Number.isFinite(parsedAge) && parsedAge > 0) {
+        await supabase.from('children').insert({
+          parent_id: parent.id,
+          age_value: parsedAge,
+          age_unit: 'years',
+        })
+      }
     }
 
     return NextResponse.json({ success: true })

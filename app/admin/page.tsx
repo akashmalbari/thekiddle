@@ -28,8 +28,9 @@ type Subscriber = {
   id: string
   name: string | null
   email: string
+  subscriber_state: 'potential' | 'active' | 'unsubscribed'
   created_at: string
-  children: { name: string; age_value: number }[]
+  children: { age_value: number }[]
 }
 
 type NewsletterRecord = {
@@ -118,10 +119,10 @@ export default function AdminPage() {
 
   const loadSubscribers = async () => {
     setLoadingData(true)
-    const { data: parents } = await supabase.from('parents').select('id, name, email, created_at').order('created_at', { ascending: false })
+    const { data: parents } = await supabase.from('parents').select('id, name, email, subscriber_state, created_at').order('created_at', { ascending: false })
     if (!parents) { setLoadingData(false); return }
     const enriched: Subscriber[] = await Promise.all(parents.map(async p => {
-      const { data: kids } = await supabase.from('children').select('name, age_value').eq('parent_id', p.id)
+      const { data: kids } = await supabase.from('children').select('age_value').eq('parent_id', p.id)
       return { ...p, children: kids || [] }
     }))
     setSubscribers(enriched); setLoadingData(false)
@@ -393,7 +394,12 @@ export default function AdminPage() {
   }, [authed])
 
   const inp: React.CSSProperties = { width: '100%', padding: '12px 16px', borderRadius: 12, border: '2px solid var(--border)', fontSize: 14, fontFamily: "'Nunito',sans-serif", fontWeight: 600, color: 'var(--dark)', background: 'var(--cream)', outline: 'none', transition: 'border-color 0.2s' }
-  const filtered = subscribers.filter(s => s.email?.toLowerCase().includes(search.toLowerCase()) || s.name?.toLowerCase().includes(search.toLowerCase()) || s.children?.some(c => c.name?.toLowerCase().includes(search.toLowerCase())))
+  const filtered = subscribers.filter(
+    s =>
+      s.email?.toLowerCase().includes(search.toLowerCase()) ||
+      s.name?.toLowerCase().includes(search.toLowerCase()) ||
+      s.subscriber_state?.toLowerCase().includes(search.toLowerCase())
+  )
 
   // ── LOGIN ──
   if (!authed) return (
@@ -493,15 +499,16 @@ export default function AdminPage() {
                       <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--dark)' }}>{sub.name || '—'}</div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)' }}>{sub.email}</div>
                     </div>
-                    {sub.children.length > 0 && (
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        {sub.children.map((c, i) => (
-                          <span key={i} style={{ background: '#FFF8E1', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 700, color: 'var(--body)', border: '1px solid #FFD16650' }}>
-                            🧒 {c.name} · age {c.age_value}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ background: '#E6FAF9', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800, color: '#2C2016', border: '1px solid #6ECDC850' }}>
+                        {sub.subscriber_state}
+                      </span>
+                      {sub.children.map((c, i) => (
+                        <span key={i} style={{ background: '#FFF8E1', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 700, color: 'var(--body)', border: '1px solid #FFD16650' }}>
+                          🧒 age {c.age_value}
+                        </span>
+                      ))}
+                    </div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--hint)', flexShrink: 0 }}>
                       {new Date(sub.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>

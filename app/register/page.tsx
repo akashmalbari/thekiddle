@@ -56,7 +56,6 @@ function RegisterInner() {
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [childName, setChildName] = useState('')
   const [childAge, setChildAge] = useState('')
   const [plan, setPlan] = useState(planParam)
   const [loading, setLoading] = useState(false)
@@ -127,7 +126,7 @@ function RegisterInner() {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ parentName: name, email, childName, childAge: parseInt(childAge), plan }),
+        body: JSON.stringify({ parentName: name, email, childAge: parseInt(childAge), plan }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Something went wrong') }
 
@@ -199,12 +198,8 @@ function RegisterInner() {
                 <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>We&apos;ll personalize activities to their age!</p>
               </div>
               <div style={card}>
-                <div style={{ marginBottom: 18 }}>
-                  <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', letterSpacing: 1, textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>Child&apos;s name</label>
-                  <input style={inputCss} placeholder="e.g. Emma" value={childName} onChange={e => setChildName(e.target.value)} onFocus={focus('#FFAAA5')} onBlur={blur} />
-                </div>
                 <div style={{ marginBottom: 28 }}>
-                  <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', letterSpacing: 1, textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>Age</label>
+                  <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', letterSpacing: 1, textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>Child age</label>
                   <select style={{ ...inputCss, appearance: 'none' } as React.CSSProperties} value={childAge} onChange={e => setChildAge(e.target.value)} onFocus={focus('#FFAAA5') as any} onBlur={blur as any}>
                     <option value="">Select age</option>
                     {['3','4','5'].map(a => <option key={a} value={a}>{a} years old</option>)}
@@ -212,8 +207,8 @@ function RegisterInner() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
                   <button onClick={() => setStep(0)} style={{ padding: '13px 20px', borderRadius: 14, border: '2px solid var(--border)', background: 'white', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 700, cursor: 'pointer', color: 'var(--muted)' }}>← Back</button>
-                  <button onClick={() => { if (childName.trim() && childAge) setStep(2) }} disabled={!childName.trim() || !childAge}
-                    style={{ flex: 1, padding: '13px', borderRadius: 14, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 800, cursor: childName.trim() && childAge ? 'pointer' : 'not-allowed', background: childName.trim() && childAge ? '#FFD166' : 'var(--border)', color: childName.trim() && childAge ? '#1A1208' : 'var(--hint)', boxShadow: childName.trim() && childAge ? 'var(--shadow-yellow)' : 'none', transition: 'all 0.2s' }}>
+                  <button onClick={() => { if (childAge) setStep(2) }} disabled={!childAge}
+                    style={{ flex: 1, padding: '13px', borderRadius: 14, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 800, cursor: childAge ? 'pointer' : 'not-allowed', background: childAge ? '#FFD166' : 'var(--border)', color: childAge ? '#1A1208' : 'var(--hint)', boxShadow: childAge ? 'var(--shadow-yellow)' : 'none', transition: 'all 0.2s' }}>
                     Continue → Choose your plan
                   </button>
                 </div>
@@ -246,7 +241,7 @@ function RegisterInner() {
                   <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: isMobile ? 4 : 12, fontSize: 14, fontWeight: 700, color: 'var(--body)' }}>
                     <span>👤 {name}</span><span>📧 {email}</span>
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--body)', marginTop: 4 }}>🧒 {childName}, age {childAge}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--body)', marginTop: 4 }}>🧒 Child age: {childAge}</div>
                 </div>
                 {error && <div style={{ background: '#FFF0EF', border: '2px solid #FFAAA5', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#E07D78', fontWeight: 700 }}>⚠️ {error}</div>}
                 <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>

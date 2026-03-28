@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const stripe = getStripe()
   const appUrl = getAppUrl(req)
   try {
-    const { parentName, email, childName, childAge, plan } = await req.json()
+    const { parentName, email, childAge, plan } = await req.json()
 
     if (!parentName || !email || !email.includes('@')) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -39,7 +39,13 @@ export async function POST(req: NextRequest) {
     const { data: parent, error: parentError } = await supabaseAdmin
       .from('parents')
       .upsert(
-        { name: parentName, parent_name: parentName, email },
+        {
+          name: parentName,
+          parent_name: parentName,
+          email,
+          subscriber_state: 'potential',
+          subscription_intent_at: new Date().toISOString(),
+        },
         { onConflict: 'email', ignoreDuplicates: false }
       )
       .select('id, email')
@@ -52,21 +58,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (childName && childAge && Number.isFinite(Number(childAge))) {
+    if (Number.isFinite(Number(childAge))) {
       const age = parseInt(String(childAge), 10)
       if (age > 0) {
         const { data: existingChild } = await supabaseAdmin
           .from('children')
           .select('id')
           .eq('parent_id', parent.id)
-          .eq('name', childName)
           .eq('age_value', age)
+          .eq('age_unit', 'years')
           .maybeSingle()
 
         if (!existingChild) {
           await supabaseAdmin.from('children').insert({
             parent_id: parent.id,
-            name: childName,
             age_value: age,
             age_unit: 'years',
           })

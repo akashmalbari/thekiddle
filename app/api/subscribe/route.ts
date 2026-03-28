@@ -13,31 +13,21 @@ export async function POST(req: NextRequest) {
 
     const supabaseAdmin = getSupabaseAdmin()
 
-    const { error: subscriberError } = await supabaseAdmin
-      .from('newsletter_subscribers')
-      .upsert(
-        {
-          email: normalizedEmail,
-          source: 'landing_page',
-          last_sample_sent_at: new Date().toISOString(),
-        },
-        { onConflict: 'email' }
-      )
-
-    if (subscriberError) {
-      console.error('Unable to persist newsletter subscriber:', subscriberError)
-      return NextResponse.json({ error: 'Something went wrong. Try again!' }, { status: 500 })
-    }
-
     const { error: parentUpsertError } = await supabaseAdmin
       .from('parents')
       .upsert(
-        { email: normalizedEmail },
+        {
+          email: normalizedEmail,
+          subscriber_state: 'potential',
+          marketing_source: 'landing_page',
+          sample_requested_at: new Date().toISOString(),
+        },
         { onConflict: 'email', ignoreDuplicates: false }
       )
 
     if (parentUpsertError) {
-      console.error('Unable to upsert parent record:', parentUpsertError)
+      console.error('Unable to upsert potential subscriber record:', parentUpsertError)
+      return NextResponse.json({ error: 'Something went wrong. Try again!' }, { status: 500 })
     }
 
     try {
