@@ -1,4 +1,4 @@
-eibccbchgijfrelgclibkkbeidccccnkjkuuingheconst RESEND_API_URL = 'https://api.resend.com/emails'
+RESEND_API_URL = 'https://api.resend.com/emails'
 
 function normalizeBaseUrl(url: string) {
   const trimmed = url.trim()
