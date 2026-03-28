@@ -24,7 +24,11 @@ export default function FAQPage() {
           a: 'Yes. You may cancel according to your subscription terms. Access generally continues through the end of the active billing period unless otherwise required by law or disclosed at checkout.'
         }, {
           q: 'How can I contact support?',
-          a: 'Use the Contact Us form on our website. We review inquiries in the order received and make reasonable efforts to respond promptly.'
+          a: (
+            <>
+              Use the <Link href="/#contact" style={{ color: '#E07D78', fontWeight: 800, textDecoration: 'none' }}>Contact Us</Link> form on our website. We review inquiries in the order received and make reasonable efforts to respond promptly.
+            </>
+          )
         }].map((item, i) => (
           <section key={i} style={{ marginBottom: 22 }}>
             <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1A1208', marginBottom: 8 }}>{item.q}</h2>
