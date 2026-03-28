@@ -517,7 +517,7 @@ export default function AdminPage() {
           <div>
             <div style={{ marginBottom: 14, background: sendConfig.testMode ? '#FFF0EF' : '#E6FAF9', border: `2px solid ${sendConfig.testMode ? '#FFAAA5' : '#6ECDC8'}`, borderRadius: 12, padding: '10px 14px' }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: sendConfig.testMode ? '#E07D78' : '#4AADA8', marginBottom: 8 }}>
-                {sendConfig.testMode ? 'TEST MODE ACTIVE' : 'PRODUCTION MODE ACTIVE'}
+                {sendConfig.testMode ? 'SELECTED MODE ACTIVE' : 'PRODUCTION MODE ACTIVE'}
                 {sendConfig.testMode && sendConfig.testEmail ? ` — Emails will only be sent to ${sendConfig.testEmail}` : ''}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'center' }}>
@@ -532,7 +532,7 @@ export default function AdminPage() {
                   onClick={() => setSendConfig(cfg => ({ ...cfg, testMode: !cfg.testMode }))}
                   style={{ padding: '9px 14px', borderRadius: 10, border: 'none', background: sendConfig.testMode ? '#FFF8E1' : '#FFF0EF', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}
                 >
-                  Switch to {sendConfig.testMode ? 'Production' : 'Test'}
+                  Switch to {sendConfig.testMode ? 'Production' : 'Selected'}
                 </button>
                 <button
                   onClick={async () => {

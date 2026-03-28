@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const testEmail = typeof body.testEmail === 'string' ? body.testEmail.trim() : ''
 
     if (testMode && !testEmail) {
-      return NextResponse.json({ error: 'Test email is required when test mode is enabled' }, { status: 400 })
+      return NextResponse.json({ error: 'Recepient email(s) is required when selected mode is enabled' }, { status: 400 })
     }
 
     const supabaseAdmin = getSupabaseAdmin()

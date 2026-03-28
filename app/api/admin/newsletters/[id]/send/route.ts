@@ -51,7 +51,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const testEmail = settings.test_email || ''
 
   if (testMode && !testEmail) {
-    return NextResponse.json({ error: 'Test mode is enabled but test email is missing in newsletter settings' }, { status: 500 })
+    return NextResponse.json({ error: 'Selected mode is enabled but recepient email(s) is missing in newsletter settings' }, { status: 500 })
   }
 
   const recipients = testMode ? [testEmail] : productionRecipients
