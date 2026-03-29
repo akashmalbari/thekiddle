@@ -66,10 +66,17 @@ create table public.parents (
   unsubscribed_at timestamptz,
 
   -- billing/subscription linkage
+  auth_user_id uuid references auth.users(id) on delete set null,
   access_tier public.access_tier_enum not null default 'free',
   subscription_status text,
   billing_country_code text,
   active_subscription_id bigint,
+
+  -- email preference state (separate from billing)
+  marketing_email_opt_in boolean not null default true,
+  marketing_unsubscribed_at timestamptz,
+  marketing_unsubscribe_source text,
+  email_token_version integer not null default 1,
 
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -81,6 +88,8 @@ create table public.parents (
 );
 
 create index parents_subscriber_state_idx on public.parents(subscriber_state);
+create index parents_marketing_opt_in_idx on public.parents(marketing_email_opt_in);
+create index parents_auth_user_id_idx on public.parents(auth_user_id);
 create index parents_created_at_idx on public.parents(created_at desc);
 
 create table public.children (
@@ -240,6 +249,12 @@ create table public.subscriptions (
   current_period_end timestamptz,
   cancel_at_period_end boolean not null default false,
   canceled_at timestamptz,
+  ended_at timestamptz,
+  cancel_requested_at timestamptz,
+  cancel_source text,
+  cancel_reason text,
+  cancel_feedback text,
+  manage_token_version integer not null default 1,
   trial_ends_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

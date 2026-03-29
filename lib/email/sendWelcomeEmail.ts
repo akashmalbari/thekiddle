@@ -1,19 +1,8 @@
+import { resolveAppBaseUrl } from '@/lib/appUrl'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { buildUnsubscribeLink } from '@/lib/unsubscribe'
+
 const RESEND_API_URL = 'https://api.resend.com/emails'
-
-function normalizeBaseUrl(url: string) {
-  const trimmed = url.trim()
-  if (!trimmed) return ''
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `https://${trimmed}`
-}
-
-function resolveAppBaseUrl() {
-  const explicit = normalizeBaseUrl(process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || '')
-  if (explicit) return explicit
-
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
-  return 'http://localhost:3000'
-}
 
 export async function sendWelcomeEmail(recipientEmail: string) {
   const resendApiKey = process.env.RESEND_API_KEY
@@ -25,6 +14,21 @@ export async function sendWelcomeEmail(recipientEmail: string) {
 
   const appBaseUrl = resolveAppBaseUrl().replace(/\/$/, '')
   const sampleNewsletterUrl = `${appBaseUrl}/sample-newsletter`
+
+  const supabaseAdmin = getSupabaseAdmin()
+  const { data: parent } = await supabaseAdmin
+    .from('parents')
+    .select('id,email,email_token_version')
+    .eq('email', recipientEmail.toLowerCase())
+    .maybeSingle()
+
+  const unsubscribeLink = parent
+    ? buildUnsubscribeLink({
+        parentId: parent.id,
+        email: parent.email,
+        emailTokenVersion: parent.email_token_version,
+      })
+    : `${appBaseUrl}/unsubscribe`
 
   const html = `
     <div style="font-family: Arial, sans-serif; line-height:1.75; color:#222;">
@@ -48,6 +52,10 @@ export async function sendWelcomeEmail(recipientEmail: string) {
       </p>
       <p>Here’s to many curious weeks ahead ✨</p>
       <p>Warmly,<br/>The Kiddle Team</p>
+      <hr style="margin:24px 0;border:none;border-top:1px solid #eee;" />
+      <p style="font-size:12px;color:#6b7280;">
+        Prefer fewer emails? <a href="${unsubscribeLink}">Unsubscribe from emails</a> or manage paid subscription preferences.
+      </p>
     </div>
   `
 

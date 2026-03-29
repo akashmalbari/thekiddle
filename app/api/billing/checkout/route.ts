@@ -1,27 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { getStripe } from '@/lib/stripe'
+import { getAppUrlFromRequest } from '@/lib/appUrl'
 
 const PRICE_BY_PLAN: Record<string, string | undefined> = {
   monthly: process.env.STRIPE_PRICE_MONTHLY_USD,
   yearly: process.env.STRIPE_PRICE_YEARLY_USD,
 }
 
-function getAppUrl(req: NextRequest) {
-  if (process.env.APP_URL) return process.env.APP_URL
-
-  const host = req.headers.get('x-forwarded-host') || req.headers.get('host')
-  const proto = req.headers.get('x-forwarded-proto') || 'https'
-
-  if (host) return `${proto}://${host}`
-
-  return 'http://localhost:3000'
-}
-
 export async function POST(req: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin()
   const stripe = getStripe()
-  const appUrl = getAppUrl(req)
+  const appUrl = getAppUrlFromRequest(req)
   try {
     const { parentName, email, childAge, plan } = await req.json()
 

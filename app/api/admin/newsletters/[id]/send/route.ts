@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { requireAdmin } from '@/lib/serverAdminAuth'
 import { getInvalidEmails, getNewsletterSendSettings, parseRecipientEmails } from '@/lib/newsletterSettings'
+import { buildUnsubscribeLink } from '@/lib/unsubscribe'
 
 const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
@@ -37,15 +38,22 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   const { data: subscribers, error: subscribersError } = await supabaseAdmin
     .from('parents')
-    .select('email')
+    .select('id,email,email_token_version,marketing_email_opt_in')
     .eq('subscriber_state', 'active')
+    .eq('marketing_email_opt_in', true)
     .not('email', 'is', null)
 
   if (subscribersError) {
     return NextResponse.json({ error: 'Unable to fetch subscribers' }, { status: 500 })
   }
 
-  const productionRecipients = Array.from(new Set((subscribers || []).map((s: any) => s.email).filter(Boolean))) as string[]
+  const productionRecipients = Array.from(
+    new Map(
+      (subscribers || [])
+        .filter((s: any) => s?.email)
+        .map((s: any) => [String(s.email).toLowerCase(), s])
+    ).values()
+  ) as Array<{ id: string; email: string; email_token_version?: number | null }>
 
   const settings = await getNewsletterSendSettings(supabaseAdmin)
   const testMode = settings.test_mode
@@ -64,7 +72,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     )
   }
 
-  const recipients = testMode ? selectedRecipients : productionRecipients
+  const recipients = testMode ? selectedRecipients : productionRecipients.map((r) => r.email)
 
   const dryRun = req.nextUrl.searchParams.get('dryRun') === 'true'
   if (dryRun) {
@@ -101,6 +109,15 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   for (const email of recipients) {
     try {
+      const recipientParent = productionRecipients.find((r) => r.email.toLowerCase() === email.toLowerCase())
+      const unsubscribeLink = recipientParent
+        ? buildUnsubscribeLink({
+            parentId: recipientParent.id,
+            email: recipientParent.email,
+            emailTokenVersion: recipientParent.email_token_version || 1,
+          })
+        : '#'
+
       const html = `
         <div style="font-family: Arial, sans-serif; line-height:1.6; color:#222;">
           <p>Hi,</p>
@@ -110,6 +127,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
           <p>Take your time with it—there’s no rush. Even 30–40 minutes of focused, joyful engagement can make a big difference.</p>
           <p>See you next week!</p>
           <p>The Kiddle Team</p>
+          <hr style="margin:24px 0;border:none;border-top:1px solid #eee;" />
+          <p style="font-size:12px;color:#6b7280;">
+            <a href="${unsubscribeLink}">Unsubscribe from emails</a> · Manage subscription preferences
+          </p>
         </div>
       `
 

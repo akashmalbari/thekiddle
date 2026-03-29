@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
+import { markParentBillingState } from '@/lib/subscriptionState'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
@@ -11,23 +12,6 @@ function extractSubscriptionPlanCode(subscription: Stripe.Subscription): 'monthl
   return interval === 'year' ? 'yearly' : 'monthly'
 }
 
-async function markParentAccess(parentId: string, status: string, countryCode?: string) {
-  const paidStatuses = new Set(['active', 'trialing'])
-  const isPaid = paidStatuses.has(status)
-  const supabaseAdmin = getSupabaseAdmin()
-
-  await supabaseAdmin
-    .from('parents')
-    .update({
-      access_tier: isPaid ? 'paid' : 'free',
-      subscriber_state: isPaid ? 'active' : 'unsubscribed',
-      subscribed_at: isPaid ? new Date().toISOString() : null,
-      unsubscribed_at: isPaid ? null : new Date().toISOString(),
-      subscription_status: status,
-      billing_country_code: countryCode || null,
-    })
-    .eq('id', parentId)
-}
 
 async function upsertBillingCustomer(parentId: string, customerId: string, email?: string | null, countryCode?: string | null) {
   const supabaseAdmin = getSupabaseAdmin()
@@ -152,7 +136,7 @@ async function handleEvent(event: Stripe.Event) {
         const stripe = getStripe()
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         await upsertSubscription(parentId, billingCustomerId, subscription, session.customer_details?.address?.country || null)
-        await markParentAccess(parentId, subscription.status, session.customer_details?.address?.country || undefined)
+        await markParentBillingState(parentId, subscription.status, session.customer_details?.address?.country || undefined)
 
         logWebhookDebug('checkout.session.completed.parent_updated', {
           eventId: event.id,
@@ -262,7 +246,7 @@ async function handleEvent(event: Stripe.Event) {
       }
 
       await upsertSubscription(parentId, billingCustomerId, subscription, countryCode)
-      await markParentAccess(parentId, subscription.status, countryCode)
+      await markParentBillingState(parentId, subscription.status, countryCode || undefined)
 
       logWebhookDebug('customer.subscription.parent_updated', {
         eventId: event.id,
@@ -326,7 +310,7 @@ async function handleEvent(event: Stripe.Event) {
         const stripe = getStripe()
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
 
-        await markParentAccess(
+        await markParentBillingState(
           billingCustomer.parent_id,
           subscription.status,
           billingCustomer.country_code || undefined

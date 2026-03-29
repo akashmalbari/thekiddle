@@ -3,29 +3,13 @@ import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
+import { markParentBillingState } from '@/lib/subscriptionState'
 
 function extractSubscriptionPlanCode(subscription: Stripe.Subscription): 'monthly' | 'yearly' {
   const interval = subscription.items.data[0]?.price?.recurring?.interval
   return interval === 'year' ? 'yearly' : 'monthly'
 }
 
-async function markParentAccess(parentId: string, status: string, countryCode?: string) {
-  const paidStatuses = new Set(['active', 'trialing'])
-  const isPaid = paidStatuses.has(status)
-  const supabaseAdmin = getSupabaseAdmin()
-
-  await supabaseAdmin
-    .from('parents')
-    .update({
-      access_tier: isPaid ? 'paid' : 'free',
-      subscriber_state: isPaid ? 'active' : 'unsubscribed',
-      subscribed_at: isPaid ? new Date().toISOString() : null,
-      unsubscribed_at: isPaid ? null : new Date().toISOString(),
-      subscription_status: status,
-      billing_country_code: countryCode || null,
-    })
-    .eq('id', parentId)
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -103,7 +87,7 @@ export async function GET(req: NextRequest) {
         .eq('id', parentId)
     }
 
-    await markParentAccess(parentId, subscription.status, customerCountry || undefined)
+    await markParentBillingState(parentId, subscription.status, customerCountry || undefined)
 
     if (session.customer_details?.email) {
       try {
@@ -115,7 +99,7 @@ export async function GET(req: NextRequest) {
 
     const { data: parent } = await supabaseAdmin
       .from('parents')
-      .select('email,subscriber_state,access_tier,subscription_status,subscribed_at')
+      .select('email,marketing_email_opt_in,access_tier,subscription_status')
       .eq('id', parentId)
       .maybeSingle()
 
