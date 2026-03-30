@@ -258,14 +258,14 @@ export default function AdminPage() {
       if (!dryRunRes.ok) throw new Error(dryRunData.error || 'Unable to prepare send')
 
       const confirmation = window.confirm(
-        `Send newsletter now?\n\nTitle: ${dryRunData.newsletterTitle || newsletter.title}\nRecipients: ${dryRunData.recipientCount}\nMode: ${dryRunData.mode === 'test' ? 'SELECTED' : 'PRODUCTION'}`
+        `Send next newsletters now?\n\nEligible active subscribers: ${dryRunData.eligibleParentCount || 0}\nBehavior: ${dryRunData.description || 'Each active subscriber receives their next newsletter in sequence.'}`
       )
       if (!confirmation) return
 
       const res = await authFetch(`/api/admin/newsletters/${newsletter.id}/send`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Unable to send newsletter')
-      setNewsletterMsg(`✅ Send completed (${data.mode.toUpperCase()}) — Sent: ${data.sentCount}, Failed: ${data.failedCount}`)
+      setNewsletterMsg(`✅ Send completed — Sent: ${data.sentCount}, Failed: ${data.failedCount}, Skipped: ${data.skippedCount}`)
       await loadNewsletters()
     } catch (e: any) {
       setNewsletterMsg(`⚠️ ${e.message}`)
@@ -597,7 +597,7 @@ export default function AdminPage() {
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => previewNewsletter(n.id)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#E6FAF9', color: '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>Preview</button>
                         <button onClick={() => sendNewsletter(n)} disabled={n.status === 'sending'} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: n.status === 'sending' ? 'wait' : 'pointer' }}>
-                          {n.status === 'sending' ? 'Sending...' : 'Send'}
+                          {n.status === 'sending' ? 'Sending...' : 'Send Next Newsletter to Active Subscribers'}
                         </button>
                         <button onClick={() => deleteNewsletter(n)} disabled={n.status === 'sending'} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFF0EF', color: '#E07D78', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: n.status === 'sending' ? 'not-allowed' : 'pointer' }}>
                           Delete
