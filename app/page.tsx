@@ -319,17 +319,12 @@ export default function HomePage() {
               </div>
             </div>
             {/* Stat bubble */}
-            <div style={{ position: 'absolute', bottom: isMobile ? 24 : 80, left: isMobile ? 0 : 10, background: 'white', borderRadius: 18, padding: isMobile ? '12px 16px' : '14px 20px', boxShadow: 'var(--shadow-md)', display: 'flex', alignItems: 'center', gap: 12, zIndex: 3 }} className="float-delay1">
+            <div style={{ position: 'absolute', bottom: isMobile ? 24 : 80, left: '50%', transform: 'translateX(-50%)', background: 'white', borderRadius: 18, padding: isMobile ? '12px 16px' : '14px 20px', boxShadow: 'var(--shadow-md)', display: 'flex', alignItems: 'center', gap: 12, zIndex: 3 }} className="float-delay1">
               <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#FFD166', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>✨</div>
               <div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--dark)', lineHeight: 1, fontFamily: "'Baloo 2',cursive" }}>150+</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>Activities</div>
               </div>
-            </div>
-            {/* Screen-free badge */}
-            <div style={{ position: 'absolute', top: isMobile ? 14 : 60, right: 10, background: '#E6FAF9', border: '2px solid #6ECDC8', borderRadius: 16, padding: isMobile ? '8px 12px' : '10px 16px', zIndex: 3, textAlign: 'center' }} className="float-delay2">
-              <div style={{ fontSize: 22 }}>📵</div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#4AADA8', marginTop: 4 }}>100% Screen<br />Free</div>
             </div>
           </div>
         </div>
