@@ -280,53 +280,26 @@ export default function HomePage() {
           </div>
         ))}
 
-        <div style={{ maxWidth: 1160, margin: '0 auto', display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: isMobile ? 36 : 64, alignItems: 'center', width: '100%' }}>
-          {/* Left */}
-          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
-            <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–5 · Screen-Free</Tag></div>
-            <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
-              Let&apos;s Make Learning &amp; Playing{' '}
-              <span style={{ color: '#FFD166', position: 'relative', display: 'inline-block' }}>
-                Fun Without Screens
-                <svg style={{ position: 'absolute', bottom: -4, left: 0, width: '100%' }} viewBox="0 0 300 10" preserveAspectRatio="none">
-                  <path d="M0,7 Q75,0 150,7 Q225,14 300,7" stroke="#FFAAA5" strokeWidth="3" fill="none" strokeLinecap="round"/>
-                </svg>
-              </span>
-            </h1>
-            <p style={{ fontSize: isMobile ? 16 : 18, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600, maxWidth: 480, marginInline: isMobile ? 'auto' : undefined }}>
-              Weekly activity-packed newsletters for kids aged 3–5. Creative, educational, and 100% screen-free!
-            </p>
-            <div style={{ marginBottom: 20, maxWidth: 500, marginInline: isMobile ? 'auto' : undefined }}>
-              <EmailCapture />
-            </div>
-            <p style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
-              Join 2,000+ parents giving their kids screen-free fun
-            </p>
+        <div style={{ maxWidth: 760, margin: '0 auto', width: '100%', textAlign: 'center' }}>
+          <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–5 · Screen-Free</Tag></div>
+          <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
+            Let's Make Learning & Playing{' '}
+            <span style={{ color: '#FFD166', position: 'relative', display: 'inline-block' }}>
+              Fun Without Screens
+              <svg style={{ position: 'absolute', bottom: -4, left: 0, width: '100%' }} viewBox="0 0 300 10" preserveAspectRatio="none">
+                <path d="M0,7 Q75,0 150,7 Q225,14 300,7" stroke="#FFAAA5" strokeWidth="3" fill="none" strokeLinecap="round"/>
+              </svg>
+            </span>
+          </h1>
+          <p style={{ fontSize: isMobile ? 16 : 18, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600, maxWidth: 540, marginInline: 'auto' }}>
+            Weekly activity-packed newsletters for kids aged 3–5. Creative, educational, and 100% screen-free!
+          </p>
+          <div style={{ marginBottom: 20, maxWidth: 500, marginInline: 'auto' }}>
+            <EmailCapture />
           </div>
-
-          {/* Right — illustrated card stack */}
-          <div style={{ position: 'relative', height: isMobile ? 320 : 460, display: 'flex', alignItems: 'center', justifyContent: 'center', order: isTablet ? -1 : 0 }}>
-            {/* Main photo card */}
-            <div style={{ width: isMobile ? '100%' : 360, maxWidth: 360, height: isMobile ? 250 : 300, borderRadius: 28, overflow: 'hidden', boxShadow: '0 20px 60px rgba(26,18,8,0.15)', position: 'relative', zIndex: 2 }} className="float-sm">
-              {/* Illustrated placeholder — real photo would go here */}
-              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #FFF8E1 0%, #FFF0EF 50%, #E6FAF9 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                <div style={{ fontSize: 64 }}>🎨</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--body)', fontFamily: "'Baloo 2',cursive" }}>This week&apos;s activity</div>
-                <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>Rainbow Tissue Paper Collage</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                  {['✂️','🖌️','📄','🌈'].map((e, i) => <span key={i} style={{ fontSize: 22 }}>{e}</span>)}
-                </div>
-              </div>
-            </div>
-            {/* Stat bubble */}
-            <div style={{ position: 'absolute', bottom: isMobile ? 24 : 80, left: '50%', transform: 'translateX(-50%)', background: 'white', borderRadius: 18, padding: isMobile ? '12px 16px' : '14px 20px', boxShadow: 'var(--shadow-md)', display: 'flex', alignItems: 'center', gap: 12, zIndex: 3 }} className="float-delay1">
-              <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#FFD166', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>✨</div>
-              <div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--dark)', lineHeight: 1, fontFamily: "'Baloo 2',cursive" }}>150+</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>Activities</div>
-              </div>
-            </div>
-          </div>
+          <p style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
+            Join 2,000+ parents giving their kids screen-free fun
+          </p>
         </div>
       </section>
 
