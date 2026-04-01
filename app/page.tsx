@@ -268,14 +268,20 @@ export default function HomePage() {
         <div style={{ position: 'absolute', bottom: '10%', left: isMobile ? '-20%' : '-5%', width: isMobile ? 220 : 360, height: isMobile ? 220 : 360, borderRadius: '50%', background: 'radial-gradient(circle, #FFF0EF 0%, transparent 70%)', pointerEvents: 'none' }} />
 
         {/* Floating craft doodles */}
-        {!isMobile && [
-          { emoji: '✂️', top: '14%', left: '4%', cls: 'float' },
-          { emoji: '🖍️', top: '20%', right: '4%', cls: 'float-delay1' },
-          { emoji: '🎨', bottom: '28%', left: '3%', cls: 'float-delay2' },
-          { emoji: '📌', top: '60%', right: '3%', cls: 'float-delay3' },
-          { emoji: '🌟', top: '10%', left: 'calc(50% - 26px)', cls: 'wiggle' },
-        ].map((b, i) => (
-          <div key={i} className={b.cls} style={{ position: 'absolute', top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: 52, height: 52, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)' }}>
+        {(isMobile
+          ? [
+              { emoji: '🌟', top: '12%', right: '6%', cls: 'float-sm' },
+              { emoji: '🎨', bottom: '26%', left: '4%', cls: 'float-delay2' },
+              { emoji: '✂️', top: '62%', right: '5%', cls: 'float-delay3' },
+            ]
+          : [
+              { emoji: '✂️', top: '14%', left: '4%', cls: 'float' },
+              { emoji: '🖍️', top: '20%', right: '4%', cls: 'float-delay1' },
+              { emoji: '🎨', bottom: '28%', left: '3%', cls: 'float-delay2' },
+              { emoji: '📌', top: '60%', right: '3%', cls: 'float-delay3' },
+              { emoji: '🌟', top: '10%', left: 'calc(50% - 26px)', cls: 'wiggle' },
+            ]).map((b, i) => (
+          <div key={i} className={b.cls} style={{ position: 'absolute', top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: isMobile ? 38 : 52, height: isMobile ? 38 : 52, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 18 : 22, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)', opacity: isMobile ? 0.92 : 1, pointerEvents: 'none' }}>
             {b.emoji}
           </div>
         ))}
