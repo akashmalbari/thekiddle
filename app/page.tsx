@@ -301,7 +301,7 @@ export default function HomePage() {
                   borderRadius: 10,
                   border: '2px solid rgba(240,232,212,0.9)',
                   boxShadow: '0 10px 26px rgba(26,18,8,0.14)',
-                  filter: 'blur(2px)',
+                  filter: 'blur(1px)',
                   transform: `translateX(${card.offset}px) rotate(${card.rotate}deg)`,
                   transformOrigin: 'top center',
                   zIndex: card.z,
