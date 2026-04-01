@@ -80,11 +80,11 @@ function EmailCapture({ onSuccess }: { onSuccess?: (email: string) => void }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 10, background: 'white', borderRadius: 'var(--r-full)', padding: '6px 6px 6px 20px', boxShadow: 'var(--shadow-md)', border: '2px solid var(--border)', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 10, background: 'white', borderRadius: 'var(--r-full)', padding: '6px 10px', boxShadow: 'var(--shadow-md)', border: '2px solid var(--border)', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
         <input value={email} onChange={e => { setEmail(e.target.value); setError('') }} onKeyDown={e => e.key === 'Enter' && submit()}
           placeholder="Enter your email address"
-          style={{ flex: 1, border: 'none', outline: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 600, color: 'var(--dark)', background: 'transparent', minWidth: 180 }} />
-        <YellowBtn onClick={submit} style={{ borderRadius: 'var(--r-full)', padding: '11px 28px', fontSize: 15 }}>
+          style={{ flex: 1, border: 'none', outline: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 600, color: 'var(--dark)', background: 'transparent', minWidth: 220, textAlign: 'center' }} />
+        <YellowBtn onClick={submit} style={{ borderRadius: 'var(--r-full)', padding: '11px 28px', fontSize: 15, marginInline: 'auto' }}>
           {loading ? '⏳' : 'Get a Sample Kiddle For Free →'}
         </YellowBtn>
       </div>
