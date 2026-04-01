@@ -330,7 +330,7 @@ export default function HomePage() {
             <EmailCapture />
           </div>
           <p style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
-            Join 2,000+ parents giving their kids screen-free fun
+            Start your first Kiddle adventure — no planning needed
           </p>
         </div>
       </section>
@@ -475,39 +475,26 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ TESTIMONIALS ═══════════════════════════════════ */}
+      {/* ══ WHY WE STARTED KIDDLE ═════════════════════════ */}
       <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <Tag color="pink">Testimonials</Tag>
-            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16 }}>Loved By Parents Everywhere</h2>
+        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr' : '1.05fr 1fr', gap: isMobile ? 28 : 40, alignItems: 'center' }}>
+          <div>
+            <Tag color="pink">Our Story</Tag>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 16 }}>
+              Why we started Kiddle?
+            </h2>
+            <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600, marginBottom: 16 }}>
+              Kiddle started with a simple thought — in a world full of screens and busy schedules, children don’t just need more activities, they need more meaningful moments.
+            </p>
+            <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600 }}>
+              Every Kiddle week is thoughtfully curated to help parents and kids slow down, connect, and grow together — through simple, playful learning that fits into real life.
+            </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 24 }}>
-            {[
-              { q: '"Kiddle has been a game-changer! My kids look forward to the activities every week, and I love that they\'re learning while playing offline."', name: 'Sarah M.', role: 'Mom of two', color: '#FFF8E1' },
-              { q: '"As an educator, I\'m impressed by the quality of activities. They\'re developmentally appropriate and genuinely engaging for young children."', name: 'James K.', role: 'Preschool Teacher & Dad', color: '#FFF0EF' },
-              { q: '"Finally, something that keeps my daughter entertained without a screen! The activities are creative and so easy to set up."', name: 'Emily R.', role: 'Mom of 4-year-old', color: '#E6FAF9' },
-            ].map((t, i) => (
-              <div key={i} style={{ background: t.color, borderRadius: 22, padding: '28px', border: '2px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ fontSize: 28, lineHeight: 1 }}>⭐⭐⭐⭐⭐</div>
-                <p style={{ fontSize: 15, color: 'var(--body)', lineHeight: 1.7, fontWeight: 600, fontStyle: 'italic', flex: 1 }}>{t.q}</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: ['#FFD166','#FFAAA5','#6ECDC8'][i], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, color: 'white' }}>{t.name[0]}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--dark)' }}>{t.name}</div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)' }}>{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 40, marginTop: 48, flexWrap: 'wrap' }}>
-            {[['2,000+','Happy Families'],['4.9/5','Average Rating'],['150+','Total Activities']].map(([v,l],i) => (
-              <div key={i} style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily:"'Baloo 2',cursive", fontSize: 30, fontWeight: 800, color: '#FFD166' }}>{v}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted)' }}>{l}</div>
-              </div>
-            ))}
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12 }}>
+            <img src="/sec-1.jpg" alt="Kiddle activity preview 1" style={{ width: '100%', height: isMobile ? 220 : 200, objectFit: 'cover', borderRadius: 16, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)' }} />
+            <img src="/sec-2.jpg" alt="Kiddle activity preview 2" style={{ width: '100%', height: isMobile ? 220 : 200, objectFit: 'cover', borderRadius: 16, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)' }} />
+            <img src="/sec-3.jpg" alt="Kiddle activity preview 3" style={{ width: '100%', height: isMobile ? 220 : 200, objectFit: 'cover', borderRadius: 16, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)', gridColumn: isMobile ? 'auto' : '1 / span 2' }} />
           </div>
         </div>
       </section>
