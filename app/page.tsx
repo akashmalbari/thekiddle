@@ -229,7 +229,7 @@ export default function HomePage() {
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, padding: isMobile ? '12px 16px' : '0 40px', minHeight: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: scrolled || mobileMenu ? 'rgba(255,253,246,0.96)' : 'transparent', backdropFilter: scrolled || mobileMenu ? 'blur(14px)' : 'none', borderBottom: scrolled || mobileMenu ? '1px solid var(--border)' : 'none', transition: 'all 0.3s', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: isMobile ? 12 : 0 }}>
         <Logo size="sm" />
         {!isMobile && <div style={{ display: 'flex', gap: 28, fontSize: 15, fontWeight: 700, color: 'var(--body)' }}>
-          {[['Features','features'],['How It Works','how-it-works'],['Pricing','pricing']].map(([label, id]) => (
+          {[['What We Offer','features'],['How It Works','how-it-works'],['Pricing','pricing']].map(([label, id]) => (
             <span key={id} onClick={() => scrollTo(id)} style={{ cursor: 'pointer', transition: 'color 0.2s' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#FFD166'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--body)'}>{label}</span>
@@ -247,7 +247,7 @@ export default function HomePage() {
         )}
         {isMobile && mobileMenu && (
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10, padding: '8px 0 4px' }}>
-            {[['Features','features'],['How It Works','how-it-works'],['Pricing','pricing']].map(([label, id]) => (
+            {[['What We Offer','features'],['How It Works','how-it-works'],['Pricing','pricing']].map(([label, id]) => (
               <button
                 key={id}
                 onClick={() => scrollTo(id)}
@@ -270,9 +270,8 @@ export default function HomePage() {
         {/* Floating craft doodles */}
         {(isMobile
           ? [
-              { emoji: '🌟', top: '12%', right: '6%', cls: 'float-sm' },
-              { emoji: '🎨', bottom: '26%', left: '4%', cls: 'float-delay2' },
-              { emoji: '✂️', top: '62%', right: '5%', cls: 'float-delay3' },
+              { emoji: '🌟', top: '12%', right: '8%', cls: 'float-sm' },
+              { emoji: '🎨', top: '18%', left: '8%', cls: 'float-delay2' },
             ]
           : [
               { emoji: '✂️', top: '14%', left: '4%', cls: 'float' },
@@ -486,26 +485,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ FINAL CTA ══════════════════════════════════════ */}
-      <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'linear-gradient(135deg, #FFD166 0%, #FFAAA5 60%, #6ECDC8 100%)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,253,246,0.15)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', maxWidth: 640, margin: '0 auto' }}>
-          <div style={{ fontSize: 56, marginBottom: 20 }} className="float">🌟</div>
-          <h2 style={{ fontSize: isMobile ? 34 : 44, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.15, marginBottom: 16 }}>
-            Ready to Make Playtime Meaningful?
-          </h2>
-          <p style={{ fontSize: isMobile ? 16 : 18, color: 'rgba(26,18,8,0.7)', marginBottom: 40, lineHeight: 1.7, fontWeight: 600 }}>
-            Join thousands of parents choosing screen-free activities for their little ones. Start your journey today!
-          </p>
-          <div style={{ maxWidth: 500, margin: '0 auto 20px' }}>
-            <EmailCapture />
-          </div>
-          <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', fontSize: 13, fontWeight: 700, color: 'rgba(26,18,8,0.6)' }}>
-            {['✓ Cancel Anytime', '✓ No Commitment'].map((t,i) => <span key={i}>{t}</span>)}
-          </div>
-        </div>
-      </section>
-
       {/* ══ CONTACT ═══════════════════════════════════════ */}
       <section id="contact" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white', borderTop: '2px solid var(--border)' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -527,16 +506,15 @@ export default function HomePage() {
             <div>
               <Logo size="sm" />
               <p style={{ marginTop: 16, fontSize: 14, lineHeight: 1.7, fontWeight: 600, maxWidth: 260 }}>
-                Screen-free activities for curious kids aged 3–5. Making learning fun, one newsletter at a time.
+                Where curiosity grows through play and creativity.
               </p>
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#FFD166', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 16 }}>Quick Links</div>
               {[
-                { label: 'Features', action: () => scrollTo('features') },
+                { label: 'What We Offer', action: () => scrollTo('features') },
                 { label: 'How It Works', action: () => scrollTo('how-it-works') },
                 { label: 'Pricing', action: () => scrollTo('pricing') },
-                { label: 'Sample Newsletter', action: () => window.open('/TheKiddle_Newsletter.pdf', '_blank') },
               ].map(l => (
                 <button key={l.label} onClick={l.action} style={{ display: 'block', width: '100%', fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', padding: 0, fontFamily: "'Nunito',sans-serif", textAlign: 'left' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'white'}
