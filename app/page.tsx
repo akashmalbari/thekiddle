@@ -286,6 +286,33 @@ export default function HomePage() {
         ))}
 
         <div style={{ maxWidth: 760, margin: '0 auto', width: '100%', textAlign: 'center' }}>
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: isMobile ? 8 : 14, marginBottom: isMobile ? 18 : 24, paddingTop: isMobile ? 8 : 12 }}>
+            {[
+              { src: '/hero-1.png', rotate: -10, z: 2, offset: isMobile ? 10 : 14, w: isMobile ? 96 : 132 },
+              { src: '/hero-2.png', rotate: 0, z: 2, offset: 0, w: isMobile ? 96 : 132 },
+              { src: '/hero-3.png', rotate: 10, z: 2, offset: isMobile ? -10 : -14, w: isMobile ? 96 : 132 },
+            ].map((card, i) => (
+              <img
+                key={i}
+                src={card.src}
+                alt={`Kiddle preview ${i + 1}`}
+                style={{
+                  width: card.w,
+                  height: 'auto',
+                  borderRadius: 10,
+                  border: '2px solid rgba(240,232,212,0.9)',
+                  boxShadow: '0 10px 26px rgba(26,18,8,0.14)',
+                  transform: `translateX(${card.offset}px) rotate(${card.rotate}deg)`,
+                  transformOrigin: 'top center',
+                  zIndex: card.z,
+                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 62%, rgba(0,0,0,0) 100%)',
+                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 62%, rgba(0,0,0,0) 100%)',
+                  pointerEvents: 'none',
+                  userSelect: 'none',
+                }}
+              />
+            ))}
+          </div>
           <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–5 · Screen-Free</Tag></div>
           <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
             Let's Make Learning & Playing{' '}
