@@ -388,8 +388,8 @@ export default function HomePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {[
               { n: '1', emoji: '📧', title: 'Subscribe', desc: 'Choose your plan, drop in your email, and you\'re part of the Kiddle family. Takes 30 seconds.', color: '#FFD166' },
-              { n: '2', emoji: '📬', title: 'Receive Weekly', desc: 'Every week, a fresh newsletter lands in your inbox packed with 3+ screen-free activities for your little one.', color: '#FFAAA5' },
-              { n: '3', emoji: '🌟', title: 'Play & Learn', desc: 'Print or follow along as your child explores, creates, and grows — without a screen in sight!', color: '#6ECDC8' },
+              { n: '2', emoji: '📬', title: 'Receive Weekly', desc: 'Receive your weekly Kiddle pack—just print at home, at work, or a nearby store.', color: '#FFAAA5' },
+              { n: '3', emoji: '🌟', title: 'Play & Learn', desc: 'Simple, joyful activities designed to keep your child engaged and learning.', color: '#6ECDC8' },
             ].map((s, i) => (
               <div key={i} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 24, alignItems: isMobile ? 'center' : 'flex-start', textAlign: isMobile ? 'center' : 'left', background: 'white', borderRadius: 22, padding: isMobile ? '24px 20px' : '28px 32px', border: '2px solid var(--border)', transition: 'border-color 0.2s, transform 0.2s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = s.color; (e.currentTarget as HTMLElement).style.transform = 'translateX(6px)' }}
