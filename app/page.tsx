@@ -278,7 +278,6 @@ export default function HomePage() {
               { emoji: '🖍️', top: '20%', right: '4%', cls: 'float-delay1' },
               { emoji: '🎨', bottom: '28%', left: '3%', cls: 'float-delay2' },
               { emoji: '📌', top: '60%', right: '3%', cls: 'float-delay3' },
-              { emoji: '🌟', top: '10%', left: 'calc(50% - 26px)', cls: 'wiggle' },
             ]).map((b, i) => (
           <div key={i} className={b.cls} style={{ position: 'absolute', top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: isMobile ? 38 : 52, height: isMobile ? 38 : 52, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 18 : 22, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)', opacity: isMobile ? 0.92 : 1, pointerEvents: 'none' }}>
             {b.emoji}
@@ -302,6 +301,7 @@ export default function HomePage() {
                   borderRadius: 10,
                   border: '2px solid rgba(240,232,212,0.9)',
                   boxShadow: '0 10px 26px rgba(26,18,8,0.14)',
+                  filter: 'blur(2px)',
                   transform: `translateX(${card.offset}px) rotate(${card.rotate}deg)`,
                   transformOrigin: 'top center',
                   zIndex: card.z,
