@@ -292,7 +292,7 @@ export default function HomePage() {
             </span>
           </h1>
           <p style={{ fontSize: isMobile ? 16 : 18, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600, maxWidth: 540, marginInline: 'auto' }}>
-            Weekly activity-packed newsletters for kids aged 3–5. Creative, educational, and 100% screen-free!
+            Kiddle is a weekly, print-ready workbook — thoughtfully curated so you don't have to think twice. Quality time with your child shouldn't require hours of planning. Just open, print, and watch them light up — every single week.
           </p>
           <div style={{ marginBottom: 20, maxWidth: 500, marginInline: 'auto' }}>
             <EmailCapture />
