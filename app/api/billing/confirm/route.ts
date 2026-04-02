@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     const customerEmail = customer && !('deleted' in customer) ? customer.email : null
     const customerCountry = customer && !('deleted' in customer) ? customer.address?.country || null : null
 
-    const { data: billingCustomer } = await supabaseAdmin
+    const { data: billingCustomer, error: billingCustomerError } = await supabaseAdmin
       .from('billing_customers')
       .upsert(
         {
@@ -52,7 +52,11 @@ export async function GET(req: NextRequest) {
       .select('id')
       .single()
 
-    const { data: upsertedSub } = await supabaseAdmin
+    if (billingCustomerError) {
+      throw new Error(`Failed to upsert billing customer in confirm route: ${billingCustomerError.message}`)
+    }
+
+    const { data: upsertedSub, error: subscriptionError } = await supabaseAdmin
       .from('subscriptions')
       .upsert(
         {
@@ -80,11 +84,19 @@ export async function GET(req: NextRequest) {
       .select('id,status')
       .single()
 
+    if (subscriptionError) {
+      throw new Error(`Failed to upsert subscription in confirm route: ${subscriptionError.message}`)
+    }
+
     if (upsertedSub?.id) {
-      await supabaseAdmin
+      const { error: parentUpdateError } = await supabaseAdmin
         .from('parents')
         .update({ active_subscription_id: upsertedSub.id, subscription_status: upsertedSub.status })
         .eq('id', parentId)
+
+      if (parentUpdateError) {
+        throw new Error(`Failed to update parent in confirm route: ${parentUpdateError.message}`)
+      }
     }
 
     await markParentBillingState(parentId, subscription.status, customerCountry || undefined)

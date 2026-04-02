@@ -6,7 +6,7 @@ export async function markParentBillingState(parentId: string, status: string, c
   const isPaid = paidStatuses.has(status)
   const supabaseAdmin = getSupabaseAdmin()
 
-  await supabaseAdmin
+  const { error } = await supabaseAdmin
     .from('parents')
     .update({
       access_tier: isPaid ? 'paid' : 'free',
@@ -14,4 +14,8 @@ export async function markParentBillingState(parentId: string, status: string, c
       billing_country_code: countryCode || null,
     })
     .eq('id', parentId)
+
+  if (error) {
+    throw new Error(`Failed to update parent billing state: ${error.message}`)
+  }
 }

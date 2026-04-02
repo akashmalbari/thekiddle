@@ -18,7 +18,7 @@ function extractSubscriptionPlanCode(subscription: Stripe.Subscription): 'monthl
 async function upsertBillingCustomer(parentId: string, customerId: string, email?: string | null, countryCode?: string | null) {
   const supabaseAdmin = getSupabaseAdmin()
 
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('billing_customers')
     .upsert(
       {
@@ -33,6 +33,10 @@ async function upsertBillingCustomer(parentId: string, customerId: string, email
     .select('id')
     .single()
 
+  if (error) {
+    throw new Error(`Failed to upsert billing customer: ${error.message}`)
+  }
+
   return data?.id || null
 }
 
@@ -42,7 +46,7 @@ async function upsertSubscription(parentId: string, billingCustomerId: number | 
   const currency = (subscription.currency || 'usd').toUpperCase()
   const supabaseAdmin = getSupabaseAdmin()
 
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('subscriptions')
     .upsert(
       {
@@ -70,11 +74,19 @@ async function upsertSubscription(parentId: string, billingCustomerId: number | 
     .select('id,status')
     .single()
 
+  if (error) {
+    throw new Error(`Failed to upsert subscription: ${error.message}`)
+  }
+
   if (data?.id) {
-    await supabaseAdmin
+    const { error: parentUpdateError } = await supabaseAdmin
       .from('parents')
       .update({ active_subscription_id: data.id, subscription_status: data.status })
       .eq('id', parentId)
+
+    if (parentUpdateError) {
+      throw new Error(`Failed to update parent active subscription: ${parentUpdateError.message}`)
+    }
   }
 
   return data?.id || null
@@ -284,7 +296,7 @@ async function handleEvent(event: Stripe.Event) {
         .eq('provider_customer_id', customerId)
         .maybeSingle()
 
-      await supabaseAdmin.from('payment_transactions').insert({
+      const { error: paymentInsertError } = await supabaseAdmin.from('payment_transactions').insert({
         parent_id: billingCustomer?.parent_id || null,
         provider: 'stripe',
         provider_payment_id: null,
@@ -295,6 +307,10 @@ async function handleEvent(event: Stripe.Event) {
         currency_code: (invoice.currency || 'usd').toUpperCase(),
         raw_metadata: invoice as unknown as Record<string, unknown>,
       })
+
+      if (paymentInsertError) {
+        throw new Error(`Failed to insert payment transaction: ${paymentInsertError.message}`)
+      }
 
       logWebhookDebug('invoice.recorded', {
         eventId: event.id,
@@ -354,73 +370,49 @@ export async function POST(req: NextRequest) {
     eventId = event.id
 
     const supabaseAdmin = getSupabaseAdmin()
-    let existing: { id: number; processing_status: string } | null = null
 
-    try {
-      const result = await supabaseAdmin
-        .from('webhook_events')
-        .select('id,processing_status')
-        .eq('provider', 'stripe')
-        .eq('provider_event_id', event.id)
-        .maybeSingle()
+    const lookupResult = await supabaseAdmin
+      .from('webhook_events')
+      .select('id,processing_status')
+      .eq('provider', 'stripe')
+      .eq('provider_event_id', event.id)
+      .maybeSingle()
 
-      existing = result.data as { id: number; processing_status: string } | null
-
-      if (result.error) {
-        throw result.error
-      }
-    } catch (storageErr: any) {
-      logWebhookDebug('event_store.lookup_failed', {
-        eventId: event.id,
-        eventType: event.type,
-        error: storageErr?.message || 'unknown_error',
-      })
+    if (lookupResult.error) {
+      throw new Error(`Failed to lookup webhook_events row: ${lookupResult.error.message}`)
     }
+
+    const existing = lookupResult.data as { id: number; processing_status: string } | null
 
     if (existing?.id && existing.processing_status === 'processed') {
       return NextResponse.json({ received: true, duplicate: true })
     }
 
-    if (!existing?.id) {
-      try {
-        const insertResult = await supabaseAdmin.from('webhook_events').insert({
-          provider: 'stripe',
-          provider_event_id: event.id,
-          event_type: event.type,
-          payload: event as unknown as Record<string, unknown>,
-          processing_status: 'received',
-        })
+    const upsertReceivedResult = await supabaseAdmin.from('webhook_events').upsert(
+      {
+        provider: 'stripe',
+        provider_event_id: event.id,
+        event_type: event.type,
+        payload: event as unknown as Record<string, unknown>,
+        processing_status: existing?.processing_status === 'failed' ? 'retrying' : 'received',
+      },
+      { onConflict: 'provider,provider_event_id' }
+    )
 
-        if (insertResult.error) {
-          throw insertResult.error
-        }
-      } catch (storageErr: any) {
-        logWebhookDebug('event_store.insert_failed', {
-          eventId: event.id,
-          eventType: event.type,
-          error: storageErr?.message || 'unknown_error',
-        })
-      }
+    if (upsertReceivedResult.error) {
+      throw new Error(`Failed to upsert webhook_events row: ${upsertReceivedResult.error.message}`)
     }
 
     await handleEvent(event)
 
-    try {
-      const updateResult = await supabaseAdmin
-        .from('webhook_events')
-        .update({ processing_status: 'processed', processed_at: new Date().toISOString(), error_message: null })
-        .eq('provider', 'stripe')
-        .eq('provider_event_id', event.id)
+    const updateResult = await supabaseAdmin
+      .from('webhook_events')
+      .update({ processing_status: 'processed', processed_at: new Date().toISOString(), error_message: null })
+      .eq('provider', 'stripe')
+      .eq('provider_event_id', event.id)
 
-      if (updateResult.error) {
-        throw updateResult.error
-      }
-    } catch (storageErr: any) {
-      logWebhookDebug('event_store.update_failed', {
-        eventId: event.id,
-        eventType: event.type,
-        error: storageErr?.message || 'unknown_error',
-      })
+    if (updateResult.error) {
+      throw new Error(`Failed to mark webhook_events as processed: ${updateResult.error.message}`)
     }
 
     return NextResponse.json({ received: true })
@@ -443,15 +435,20 @@ export async function POST(req: NextRequest) {
       try {
         await supabaseAdmin
           .from('webhook_events')
-          .update({
-            processing_status: 'failed',
-            error_message: err?.message || 'Webhook handler failed',
-            processed_at: new Date().toISOString(),
-          })
-          .eq('provider', 'stripe')
-          .eq('provider_event_id', eventId)
-      } catch {
-        // swallow logging failure; original webhook error should control response code
+          .upsert(
+            {
+              provider: 'stripe',
+              provider_event_id: eventId,
+              event_type: 'unknown',
+              payload: null,
+              processing_status: 'failed',
+              error_message: err?.message || 'Webhook handler failed',
+              processed_at: new Date().toISOString(),
+            },
+            { onConflict: 'provider,provider_event_id' }
+          )
+      } catch (logErr: any) {
+        console.error('Failed to persist webhook failure state:', logErr?.message || logErr)
       }
     }
 
