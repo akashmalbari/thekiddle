@@ -5,6 +5,8 @@ import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
 import { markParentBillingState } from '@/lib/subscriptionState'
 
+export const runtime = 'nodejs'
+
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
 function extractSubscriptionPlanCode(subscription: Stripe.Subscription): 'monthly' | 'yearly' {
@@ -334,6 +336,8 @@ async function handleEvent(event: Stripe.Event) {
 }
 
 export async function POST(req: NextRequest) {
+  let eventId: string | null = null
+
   try {
     if (!webhookSecret) {
       return NextResponse.json({ error: 'Missing STRIPE_WEBHOOK_SECRET' }, { status: 500 })
@@ -347,36 +351,77 @@ export async function POST(req: NextRequest) {
     const body = await req.text()
     const stripe = getStripe()
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    const supabaseAdmin = getSupabaseAdmin()
+    eventId = event.id
 
-    const { data: existing } = await supabaseAdmin
-      .from('webhook_events')
-      .select('id,processing_status')
-      .eq('provider', 'stripe')
-      .eq('provider_event_id', event.id)
-      .maybeSingle()
+    const supabaseAdmin = getSupabaseAdmin()
+    let existing: { id: number; processing_status: string } | null = null
+
+    try {
+      const result = await supabaseAdmin
+        .from('webhook_events')
+        .select('id,processing_status')
+        .eq('provider', 'stripe')
+        .eq('provider_event_id', event.id)
+        .maybeSingle()
+
+      existing = result.data as { id: number; processing_status: string } | null
+
+      if (result.error) {
+        throw result.error
+      }
+    } catch (storageErr: any) {
+      logWebhookDebug('event_store.lookup_failed', {
+        eventId: event.id,
+        eventType: event.type,
+        error: storageErr?.message || 'unknown_error',
+      })
+    }
 
     if (existing?.id && existing.processing_status === 'processed') {
       return NextResponse.json({ received: true, duplicate: true })
     }
 
     if (!existing?.id) {
-      await supabaseAdmin.from('webhook_events').insert({
-        provider: 'stripe',
-        provider_event_id: event.id,
-        event_type: event.type,
-        payload: event as unknown as Record<string, unknown>,
-        processing_status: 'received',
-      })
+      try {
+        const insertResult = await supabaseAdmin.from('webhook_events').insert({
+          provider: 'stripe',
+          provider_event_id: event.id,
+          event_type: event.type,
+          payload: event as unknown as Record<string, unknown>,
+          processing_status: 'received',
+        })
+
+        if (insertResult.error) {
+          throw insertResult.error
+        }
+      } catch (storageErr: any) {
+        logWebhookDebug('event_store.insert_failed', {
+          eventId: event.id,
+          eventType: event.type,
+          error: storageErr?.message || 'unknown_error',
+        })
+      }
     }
 
     await handleEvent(event)
 
-    await supabaseAdmin
-      .from('webhook_events')
-      .update({ processing_status: 'processed', processed_at: new Date().toISOString(), error_message: null })
-      .eq('provider', 'stripe')
-      .eq('provider_event_id', event.id)
+    try {
+      const updateResult = await supabaseAdmin
+        .from('webhook_events')
+        .update({ processing_status: 'processed', processed_at: new Date().toISOString(), error_message: null })
+        .eq('provider', 'stripe')
+        .eq('provider_event_id', event.id)
+
+      if (updateResult.error) {
+        throw updateResult.error
+      }
+    } catch (storageErr: any) {
+      logWebhookDebug('event_store.update_failed', {
+        eventId: event.id,
+        eventType: event.type,
+        error: storageErr?.message || 'unknown_error',
+      })
+    }
 
     return NextResponse.json({ received: true })
   } catch (err: any) {
@@ -384,6 +429,30 @@ export async function POST(req: NextRequest) {
 
     if (err?.message?.includes('No signatures found matching the expected signature')) {
       return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 })
+    }
+
+    const supabaseAdmin = (() => {
+      try {
+        return getSupabaseAdmin()
+      } catch {
+        return null
+      }
+    })()
+
+    if (supabaseAdmin && eventId) {
+      try {
+        await supabaseAdmin
+          .from('webhook_events')
+          .update({
+            processing_status: 'failed',
+            error_message: err?.message || 'Webhook handler failed',
+            processed_at: new Date().toISOString(),
+          })
+          .eq('provider', 'stripe')
+          .eq('provider_event_id', eventId)
+      } catch {
+        // swallow logging failure; original webhook error should control response code
+      }
     }
 
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
