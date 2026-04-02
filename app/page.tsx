@@ -479,7 +479,9 @@ export default function HomePage() {
       <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr' : '1.05fr 1fr', gap: isMobile ? 28 : 40, alignItems: 'center' }}>
           <div>
-            <Tag color="pink">Our Story</Tag>
+            <div style={{ textAlign: 'center' }}>
+              <Tag color="pink">Our Story</Tag>
+            </div>
             <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 16 }}>
               Why we started Kiddle?
             </h2>
