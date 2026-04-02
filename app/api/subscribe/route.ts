@@ -32,12 +32,12 @@ export async function POST(req: NextRequest) {
 
     try {
       await sendWelcomeEmail(normalizedEmail)
+      return NextResponse.json({ success: true, sampleEmailSent: true })
     } catch (welcomeErr) {
       console.error('Welcome email send failed:', welcomeErr)
-      return NextResponse.json({ error: 'We saved your email but could not send the sample right now. Please try again in a moment.' }, { status: 502 })
+      // Do not block signup if the email provider is temporarily unavailable.
+      return NextResponse.json({ success: true, sampleEmailSent: false })
     }
-
-    return NextResponse.json({ success: true })
   } catch (err) {
     console.error('Subscribe endpoint failed:', err)
     return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 })

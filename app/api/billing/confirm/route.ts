@@ -108,22 +108,52 @@ export async function GET(req: NextRequest) {
       .eq('id', parentId)
       .maybeSingle()
 
+    let welcomeDelivery: { status: 'sent' | 'failed' | 'skipped'; reason?: string } = {
+      status: 'skipped',
+      reason: 'missing_recipient_email',
+    }
+    let newsletterDelivery:
+      | { status: 'sent'; newsletterId?: number }
+      | { status: 'failed' | 'skipped'; reason: string } = {
+      status: 'skipped',
+      reason: 'missing_recipient_email',
+    }
+
     const recipientEmail = session.customer_details?.email || customerEmail || parent?.email || null
     if (recipientEmail) {
       try {
         await sendWelcomeEmail(recipientEmail)
+        welcomeDelivery = { status: 'sent' }
       } catch (welcomeErr: any) {
-        console.error('Welcome email send failed in confirm route:', welcomeErr?.message || welcomeErr)
+        const reason = welcomeErr?.message || 'unknown_error'
+        welcomeDelivery = { status: 'failed', reason }
+        console.error('Welcome email send failed in confirm route:', reason)
       }
 
       try {
-        await sendNextNewsletterToParent({
+        const newsletterResult = await sendNextNewsletterToParent({
           parentId,
           email: recipientEmail,
           emailTokenVersion: parent?.email_token_version || 1,
         })
+
+        if (newsletterResult?.sent) {
+          newsletterDelivery = { status: 'sent', newsletterId: newsletterResult.newsletterId }
+        } else {
+          newsletterDelivery = {
+            status: 'skipped',
+            reason: newsletterResult?.reason || 'unknown_reason',
+          }
+          console.log('First newsletter skipped in confirm route:', {
+            parentId,
+            email: recipientEmail,
+            reason: newsletterResult?.reason || 'unknown_reason',
+          })
+        }
       } catch (newsletterErr: any) {
-        console.error('First newsletter send failed in confirm route:', newsletterErr?.message || newsletterErr)
+        const reason = newsletterErr?.message || 'unknown_error'
+        newsletterDelivery = { status: 'failed', reason }
+        console.error('First newsletter send failed in confirm route:', reason)
       }
     }
 
@@ -138,6 +168,11 @@ export async function GET(req: NextRequest) {
             subscription_status: parent.subscription_status,
           }
         : null,
+      delivery: {
+        recipientEmail,
+        welcome: welcomeDelivery,
+        firstNewsletter: newsletterDelivery,
+      },
     })
   } catch (err: any) {
     console.error('Billing confirmation error:', err)

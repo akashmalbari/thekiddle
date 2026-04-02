@@ -189,15 +189,26 @@ async function handleEvent(event: Stripe.Event) {
           }
 
           try {
-            await sendNextNewsletterToParent({
+            const newsletterResult = await sendNextNewsletterToParent({
               parentId,
               email: checkoutEmail,
             })
-            logWebhookDebug('checkout.session.completed.first_newsletter_sent', {
-              eventId: event.id,
-              parentId,
-              email: checkoutEmail,
-            })
+
+            if (newsletterResult?.sent) {
+              logWebhookDebug('checkout.session.completed.first_newsletter_sent', {
+                eventId: event.id,
+                parentId,
+                email: checkoutEmail,
+                newsletterId: newsletterResult.newsletterId || null,
+              })
+            } else {
+              logWebhookDebug('checkout.session.completed.first_newsletter_skipped', {
+                eventId: event.id,
+                parentId,
+                email: checkoutEmail,
+                reason: newsletterResult?.reason || 'unknown_reason',
+              })
+            }
           } catch (newsletterErr: any) {
             logWebhookDebug('checkout.session.completed.first_newsletter_failed', {
               eventId: event.id,
