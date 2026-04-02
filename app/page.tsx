@@ -497,9 +497,9 @@ export default function HomePage() {
               alt="Mom and child enjoying Kiddle activities"
               style={{
                 width: '100%',
-                height: isMobile ? 'auto' : 420,
-                maxHeight: isMobile ? 420 : 'none',
-                objectFit: 'cover',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain',
                 borderRadius: 18,
                 boxShadow: 'var(--shadow-sm)',
                 border: '2px solid var(--border)',
