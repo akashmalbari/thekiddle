@@ -99,6 +99,14 @@ function logWebhookDebug(stage: string, payload: Record<string, unknown>) {
   })
 }
 
+function isMissingOrInaccessibleWebhookEventsTableError(err: unknown) {
+  const message = err instanceof Error ? err.message : String(err || '')
+  return (
+    message.includes('relation "webhook_events" does not exist') ||
+    message.includes('permission denied for table webhook_events')
+  )
+}
+
 async function handleEvent(event: Stripe.Event) {
   const supabaseAdmin = getSupabaseAdmin()
 
@@ -371,6 +379,9 @@ export async function POST(req: NextRequest) {
 
     const supabaseAdmin = getSupabaseAdmin()
 
+    let canPersistWebhookEvents = true
+    let existing: { id: number; processing_status: string } | null = null
+
     const lookupResult = await supabaseAdmin
       .from('webhook_events')
       .select('id,processing_status')
@@ -379,43 +390,70 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (lookupResult.error) {
-      throw new Error(`Failed to lookup webhook_events row: ${lookupResult.error.message}`)
+      if (isMissingOrInaccessibleWebhookEventsTableError(lookupResult.error)) {
+        canPersistWebhookEvents = false
+        logWebhookDebug('webhook_events.disabled', {
+          eventId: event.id,
+          reason: lookupResult.error.message,
+        })
+      } else {
+        throw new Error(`Failed to lookup webhook_events row: ${lookupResult.error.message}`)
+      }
+    } else {
+      existing = lookupResult.data as { id: number; processing_status: string } | null
     }
-
-    const existing = lookupResult.data as { id: number; processing_status: string } | null
 
     if (existing?.id && existing.processing_status === 'processed') {
       return NextResponse.json({ received: true, duplicate: true })
     }
 
-    const upsertReceivedResult = await supabaseAdmin.from('webhook_events').upsert(
-      {
-        provider: 'stripe',
-        provider_event_id: event.id,
-        event_type: event.type,
-        payload: event as unknown as Record<string, unknown>,
-        processing_status: existing?.processing_status === 'failed' ? 'retrying' : 'received',
-      },
-      { onConflict: 'provider,provider_event_id' }
-    )
+    if (canPersistWebhookEvents) {
+      const upsertReceivedResult = await supabaseAdmin.from('webhook_events').upsert(
+        {
+          provider: 'stripe',
+          provider_event_id: event.id,
+          event_type: event.type,
+          payload: event as unknown as Record<string, unknown>,
+          processing_status: existing?.processing_status === 'failed' ? 'retrying' : 'received',
+        },
+        { onConflict: 'provider,provider_event_id' }
+      )
 
-    if (upsertReceivedResult.error) {
-      throw new Error(`Failed to upsert webhook_events row: ${upsertReceivedResult.error.message}`)
+      if (upsertReceivedResult.error) {
+        if (isMissingOrInaccessibleWebhookEventsTableError(upsertReceivedResult.error)) {
+          canPersistWebhookEvents = false
+          logWebhookDebug('webhook_events.disabled', {
+            eventId: event.id,
+            reason: upsertReceivedResult.error.message,
+          })
+        } else {
+          throw new Error(`Failed to upsert webhook_events row: ${upsertReceivedResult.error.message}`)
+        }
+      }
     }
 
     await handleEvent(event)
 
-    const updateResult = await supabaseAdmin
-      .from('webhook_events')
-      .update({ processing_status: 'processed', processed_at: new Date().toISOString(), error_message: null })
-      .eq('provider', 'stripe')
-      .eq('provider_event_id', event.id)
+    if (canPersistWebhookEvents) {
+      const updateResult = await supabaseAdmin
+        .from('webhook_events')
+        .update({ processing_status: 'processed', processed_at: new Date().toISOString(), error_message: null })
+        .eq('provider', 'stripe')
+        .eq('provider_event_id', event.id)
 
-    if (updateResult.error) {
-      throw new Error(`Failed to mark webhook_events as processed: ${updateResult.error.message}`)
+      if (updateResult.error) {
+        if (isMissingOrInaccessibleWebhookEventsTableError(updateResult.error)) {
+          logWebhookDebug('webhook_events.processed_update_skipped', {
+            eventId: event.id,
+            reason: updateResult.error.message,
+          })
+        } else {
+          throw new Error(`Failed to mark webhook_events as processed: ${updateResult.error.message}`)
+        }
+      }
     }
 
-    return NextResponse.json({ received: true })
+    return NextResponse.json({ received: true, webhook_events_persisted: canPersistWebhookEvents })
   } catch (err: any) {
     console.error('Stripe webhook error:', err)
 
