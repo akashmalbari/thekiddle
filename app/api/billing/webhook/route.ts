@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
+import { sendNextNewsletterToParent } from '@/lib/email/sendNextNewsletterToParent'
 import { markParentBillingState } from '@/lib/subscriptionState'
 
 export const runtime = 'nodejs'
@@ -184,6 +185,25 @@ async function handleEvent(event: Stripe.Event) {
               parentId,
               email: checkoutEmail,
               error: sampleErr?.message || 'unknown_error',
+            })
+          }
+
+          try {
+            await sendNextNewsletterToParent({
+              parentId,
+              email: checkoutEmail,
+            })
+            logWebhookDebug('checkout.session.completed.first_newsletter_sent', {
+              eventId: event.id,
+              parentId,
+              email: checkoutEmail,
+            })
+          } catch (newsletterErr: any) {
+            logWebhookDebug('checkout.session.completed.first_newsletter_failed', {
+              eventId: event.id,
+              parentId,
+              email: checkoutEmail,
+              error: newsletterErr?.message || 'unknown_error',
             })
           }
         } else {

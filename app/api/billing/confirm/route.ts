@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
+import { sendNextNewsletterToParent } from '@/lib/email/sendNextNewsletterToParent'
 import { markParentBillingState } from '@/lib/subscriptionState'
 
 function extractSubscriptionPlanCode(subscription: Stripe.Subscription): 'monthly' | 'yearly' {
@@ -101,24 +102,42 @@ export async function GET(req: NextRequest) {
 
     await markParentBillingState(parentId, subscription.status, customerCountry || undefined)
 
-    if (session.customer_details?.email) {
-      try {
-        await sendWelcomeEmail(session.customer_details.email)
-      } catch {
-        // keep confirmation successful even if sample email fails
-      }
-    }
-
     const { data: parent } = await supabaseAdmin
       .from('parents')
-      .select('email,marketing_email_opt_in,access_tier,subscription_status')
+      .select('email,email_token_version,marketing_email_opt_in,access_tier,subscription_status')
       .eq('id', parentId)
       .maybeSingle()
+
+    const recipientEmail = session.customer_details?.email || customerEmail || parent?.email || null
+    if (recipientEmail) {
+      try {
+        await sendWelcomeEmail(recipientEmail)
+      } catch (welcomeErr: any) {
+        console.error('Welcome email send failed in confirm route:', welcomeErr?.message || welcomeErr)
+      }
+
+      try {
+        await sendNextNewsletterToParent({
+          parentId,
+          email: recipientEmail,
+          emailTokenVersion: parent?.email_token_version || 1,
+        })
+      } catch (newsletterErr: any) {
+        console.error('First newsletter send failed in confirm route:', newsletterErr?.message || newsletterErr)
+      }
+    }
 
     return NextResponse.json({
       success: true,
       parentId,
-      parent,
+      parent: parent
+        ? {
+            email: parent.email,
+            marketing_email_opt_in: parent.marketing_email_opt_in,
+            access_tier: parent.access_tier,
+            subscription_status: parent.subscription_status,
+          }
+        : null,
     })
   } catch (err: any) {
     console.error('Billing confirmation error:', err)
