@@ -491,10 +491,20 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12 }}>
-            <img src="/sec-1.jpg" alt="Kiddle activity preview 1" style={{ width: '100%', height: isMobile ? 220 : 200, objectFit: 'cover', borderRadius: 16, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)' }} />
-            <img src="/sec-2.jpg" alt="Kiddle activity preview 2" style={{ width: '100%', height: isMobile ? 220 : 200, objectFit: 'cover', borderRadius: 16, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)' }} />
-            <img src="/sec-3.jpg" alt="Kiddle activity preview 3" style={{ width: '100%', height: isMobile ? 220 : 200, objectFit: 'cover', borderRadius: 16, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)', gridColumn: isMobile ? 'auto' : '1 / span 2' }} />
+          <div style={{ width: '100%', maxWidth: isMobile ? 560 : 'none', margin: '0 auto' }}>
+            <img
+              src="/motivation.jpeg"
+              alt="Mom and child enjoying Kiddle activities"
+              style={{
+                width: '100%',
+                height: isMobile ? 'auto' : 420,
+                maxHeight: isMobile ? 420 : 'none',
+                objectFit: 'cover',
+                borderRadius: 18,
+                boxShadow: 'var(--shadow-sm)',
+                border: '2px solid var(--border)',
+              }}
+            />
           </div>
         </div>
       </section>
