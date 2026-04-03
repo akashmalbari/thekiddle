@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { sendSampleNewsletterEmail } from '@/lib/email/sendSampleNewsletterEmail'
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,7 +48,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Something went wrong. Try again!' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, sampleEmailSent: false })
+    try {
+      await sendSampleNewsletterEmail(normalizedEmail)
+      return NextResponse.json({ success: true, sampleEmailSent: true })
+    } catch (sampleEmailErr) {
+      console.error('Sample newsletter email send failed:', sampleEmailErr)
+      // Do not block capture if email service is temporarily unavailable.
+      return NextResponse.json({ success: true, sampleEmailSent: false })
+    }
   } catch (err) {
     console.error('Subscribe endpoint failed:', err)
     return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 })
