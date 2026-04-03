@@ -6,6 +6,65 @@ import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
 import { sendNextNewsletterToParent } from '@/lib/email/sendNextNewsletterToParent'
 import { markParentBillingState } from '@/lib/subscriptionState'
 
+function isMissingOrInaccessibleWebhookEventsTableError(err: unknown) {
+  const message = err instanceof Error ? err.message : String(err || '')
+  return (
+    message.includes('relation "webhook_events" does not exist') ||
+    message.includes('permission denied for table webhook_events')
+  )
+}
+
+async function isCheckoutSessionAlreadyConfirmed(sessionId: string) {
+  const supabaseAdmin = getSupabaseAdmin()
+
+  const lookup = await supabaseAdmin
+    .from('webhook_events')
+    .select('processing_status')
+    .eq('provider', 'stripe_confirm')
+    .eq('provider_event_id', sessionId)
+    .maybeSingle()
+
+  if (lookup.error) {
+    if (isMissingOrInaccessibleWebhookEventsTableError(lookup.error)) {
+      return { tableAvailable: false as const, alreadyConfirmed: false }
+    }
+
+    throw new Error(`Failed to lookup checkout confirm marker: ${lookup.error.message}`)
+  }
+
+  return {
+    tableAvailable: true as const,
+    alreadyConfirmed: lookup.data?.processing_status === 'processed',
+  }
+}
+
+async function markCheckoutSessionConfirmed(sessionId: string) {
+  const supabaseAdmin = getSupabaseAdmin()
+
+  const upsert = await supabaseAdmin.from('webhook_events').upsert(
+    {
+      provider: 'stripe_confirm',
+      provider_event_id: sessionId,
+      event_type: 'checkout.session.confirmed',
+      payload: { session_id: sessionId },
+      processing_status: 'processed',
+      processed_at: new Date().toISOString(),
+      error_message: null,
+    },
+    { onConflict: 'provider,provider_event_id' }
+  )
+
+  if (upsert.error) {
+    if (isMissingOrInaccessibleWebhookEventsTableError(upsert.error)) {
+      return { tableAvailable: false as const }
+    }
+
+    throw new Error(`Failed to mark checkout session confirmed: ${upsert.error.message}`)
+  }
+
+  return { tableAvailable: true as const }
+}
+
 function extractSubscriptionPlanCode(subscription: Stripe.Subscription): 'monthly' | 'yearly' {
   const interval = subscription.items.data[0]?.price?.recurring?.interval
   return interval === 'year' ? 'yearly' : 'monthly'
@@ -21,6 +80,8 @@ export async function GET(req: NextRequest) {
 
     const stripe = getStripe()
     const supabaseAdmin = getSupabaseAdmin()
+
+    const sessionConfirmState = await isCheckoutSessionAlreadyConfirmed(sessionId)
 
     const session = await stripe.checkout.sessions.retrieve(sessionId)
     const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id
@@ -121,39 +182,48 @@ export async function GET(req: NextRequest) {
 
     const recipientEmail = session.customer_details?.email || customerEmail || parent?.email || null
     if (recipientEmail) {
-      try {
-        await sendWelcomeEmail(recipientEmail)
-        welcomeDelivery = { status: 'sent' }
-      } catch (welcomeErr: any) {
-        const reason = welcomeErr?.message || 'unknown_error'
-        welcomeDelivery = { status: 'failed', reason }
-        console.error('Welcome email send failed in confirm route:', reason)
-      }
+      if (sessionConfirmState.alreadyConfirmed) {
+        welcomeDelivery = { status: 'skipped', reason: 'already_confirmed' }
+        newsletterDelivery = { status: 'skipped', reason: 'already_confirmed' }
+      } else {
+        try {
+          await sendWelcomeEmail(recipientEmail)
+          welcomeDelivery = { status: 'sent' }
+        } catch (welcomeErr: any) {
+          const reason = welcomeErr?.message || 'unknown_error'
+          welcomeDelivery = { status: 'failed', reason }
+          console.error('Welcome email send failed in confirm route:', reason)
+        }
 
-      try {
-        const newsletterResult = await sendNextNewsletterToParent({
-          parentId,
-          email: recipientEmail,
-          emailTokenVersion: parent?.email_token_version || 1,
-        })
-
-        if (newsletterResult?.sent) {
-          newsletterDelivery = { status: 'sent', newsletterId: newsletterResult.newsletterId }
-        } else {
-          newsletterDelivery = {
-            status: 'skipped',
-            reason: newsletterResult?.reason || 'unknown_reason',
-          }
-          console.log('First newsletter skipped in confirm route:', {
+        try {
+          const newsletterResult = await sendNextNewsletterToParent({
             parentId,
             email: recipientEmail,
-            reason: newsletterResult?.reason || 'unknown_reason',
+            emailTokenVersion: parent?.email_token_version || 1,
           })
+
+          if (newsletterResult?.sent) {
+            newsletterDelivery = { status: 'sent', newsletterId: newsletterResult.newsletterId }
+          } else {
+            newsletterDelivery = {
+              status: 'skipped',
+              reason: newsletterResult?.reason || 'unknown_reason',
+            }
+            console.log('First newsletter skipped in confirm route:', {
+              parentId,
+              email: recipientEmail,
+              reason: newsletterResult?.reason || 'unknown_reason',
+            })
+          }
+        } catch (newsletterErr: any) {
+          const reason = newsletterErr?.message || 'unknown_error'
+          newsletterDelivery = { status: 'failed', reason }
+          console.error('First newsletter send failed in confirm route:', reason)
         }
-      } catch (newsletterErr: any) {
-        const reason = newsletterErr?.message || 'unknown_error'
-        newsletterDelivery = { status: 'failed', reason }
-        console.error('First newsletter send failed in confirm route:', reason)
+
+        if (welcomeDelivery.status !== 'failed' && newsletterDelivery.status !== 'failed') {
+          await markCheckoutSessionConfirmed(sessionId)
+        }
       }
     }
 

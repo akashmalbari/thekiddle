@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
         {
           error:
             existingParent.subscriber_state === 'active'
-              ? 'You are already subscribed with this email.'
-              : 'You are already in our system with this email.',
+              ? 'You are already subscribed with this email. If this seems incorrect, feel free to reach out via our contact form.'
+              : 'You are already in our system with this email. If this seems incorrect, feel free to reach out via our contact form.',
         },
         { status: 409 }
       )
