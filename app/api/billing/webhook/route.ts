@@ -330,13 +330,46 @@ async function handleEvent(event: Stripe.Event) {
 
       const { data: billingCustomer } = await supabaseAdmin
         .from('billing_customers')
-        .select('parent_id,country_code')
+        .select('id,parent_id,country_code')
         .eq('provider', 'stripe')
         .eq('provider_customer_id', customerId)
         .maybeSingle()
 
+      let parentId = billingCustomer?.parent_id || null
+      let parentIdSource: 'billing_customers' | 'subscription.metadata.parent_id' | 'none' =
+        billingCustomer?.parent_id ? 'billing_customers' : 'none'
+      let countryCode = billingCustomer?.country_code || null
+
+      let subscriptionId: string | null = null
+      if (invoiceSubscription) {
+        subscriptionId =
+          typeof invoiceSubscription === 'string' ? invoiceSubscription : invoiceSubscription.id
+      }
+
+      // Fallback for out-of-order webhook delivery where billing_customers row isn't there yet.
+      if (!parentId && subscriptionId) {
+        const stripe = getStripe()
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+        const metadataParentId = subscription.metadata?.parent_id || null
+
+        if (metadataParentId) {
+          parentId = metadataParentId
+          parentIdSource = 'subscription.metadata.parent_id'
+          countryCode = countryCode || invoice.customer_address?.country || null
+
+          if (!billingCustomer?.id) {
+            await upsertBillingCustomer(
+              parentId,
+              customerId,
+              invoice.customer_email || null,
+              countryCode
+            )
+          }
+        }
+      }
+
       const { error: paymentInsertError } = await supabaseAdmin.from('payment_transactions').insert({
-        parent_id: billingCustomer?.parent_id || null,
+        parent_id: parentId,
         provider: 'stripe',
         provider_payment_id: null,
         provider_invoice_id: invoice.id,
@@ -356,28 +389,23 @@ async function handleEvent(event: Stripe.Event) {
         eventType: event.type,
         invoiceId: invoice.id,
         customerId,
-        parentId: billingCustomer?.parent_id || null,
+        parentId,
+        parentIdSource,
         hasSubscription: !!invoiceSubscription,
       })
 
       // Safety net: keep parent access/status in sync even if subscription events arrived out of order.
-      if (billingCustomer?.parent_id && invoiceSubscription) {
-        const subscriptionId =
-          typeof invoiceSubscription === 'string' ? invoiceSubscription : invoiceSubscription.id
+      if (parentId && subscriptionId) {
         const stripe = getStripe()
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
 
-        await markParentBillingState(
-          billingCustomer.parent_id,
-          subscription.status,
-          billingCustomer.country_code || undefined
-        )
+        await markParentBillingState(parentId, subscription.status, countryCode || undefined)
 
         logWebhookDebug('invoice.parent_updated_via_subscription', {
           eventId: event.id,
           eventType: event.type,
           invoiceId: invoice.id,
-          parentId: billingCustomer.parent_id,
+          parentId,
           subscriptionId,
           subscriptionStatus: subscription.status,
         })

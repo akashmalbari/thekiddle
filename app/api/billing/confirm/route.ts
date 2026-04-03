@@ -14,14 +14,20 @@ function isMissingOrInaccessibleWebhookEventsTableError(err: unknown) {
   )
 }
 
+const CHECKOUT_CONFIRM_EVENT_PREFIX = 'checkout_confirm:'
+
+function checkoutConfirmEventId(sessionId: string) {
+  return `${CHECKOUT_CONFIRM_EVENT_PREFIX}${sessionId}`
+}
+
 async function isCheckoutSessionAlreadyConfirmed(sessionId: string) {
   const supabaseAdmin = getSupabaseAdmin()
 
   const lookup = await supabaseAdmin
     .from('webhook_events')
     .select('processing_status')
-    .eq('provider', 'stripe_confirm')
-    .eq('provider_event_id', sessionId)
+    .eq('provider', 'stripe')
+    .eq('provider_event_id', checkoutConfirmEventId(sessionId))
     .maybeSingle()
 
   if (lookup.error) {
@@ -43,8 +49,8 @@ async function markCheckoutSessionConfirmed(sessionId: string) {
 
   const upsert = await supabaseAdmin.from('webhook_events').upsert(
     {
-      provider: 'stripe_confirm',
-      provider_event_id: sessionId,
+      provider: 'stripe',
+      provider_event_id: checkoutConfirmEventId(sessionId),
       event_type: 'checkout.session.confirmed',
       payload: { session_id: sessionId },
       processing_status: 'processed',
