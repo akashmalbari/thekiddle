@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,31 +12,42 @@ export async function POST(req: NextRequest) {
 
     const supabaseAdmin = getSupabaseAdmin()
 
-    const { error: parentUpsertError } = await supabaseAdmin
+    const { data: existingParent, error: parentLookupError } = await supabaseAdmin
       .from('parents')
-      .upsert(
-        {
-          email: normalizedEmail,
-          subscriber_state: 'potential',
-          marketing_source: 'landing_page',
-          sample_requested_at: new Date().toISOString(),
-        },
-        { onConflict: 'email', ignoreDuplicates: false }
-      )
+      .select('id,subscriber_state')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
 
-    if (parentUpsertError) {
-      console.error('Unable to upsert potential subscriber record:', parentUpsertError)
+    if (parentLookupError) {
+      console.error('Unable to check existing subscriber record:', parentLookupError)
       return NextResponse.json({ error: 'Something went wrong. Try again!' }, { status: 500 })
     }
 
-    try {
-      await sendWelcomeEmail(normalizedEmail)
-      return NextResponse.json({ success: true, sampleEmailSent: true })
-    } catch (welcomeErr) {
-      console.error('Welcome email send failed:', welcomeErr)
-      // Do not block signup if the email provider is temporarily unavailable.
-      return NextResponse.json({ success: true, sampleEmailSent: false })
+    if (existingParent) {
+      return NextResponse.json(
+        {
+          error:
+            existingParent.subscriber_state === 'active'
+              ? 'You are already subscribed with this email.'
+              : 'You are already in our system with this email.',
+        },
+        { status: 409 }
+      )
     }
+
+    const { error: parentInsertError } = await supabaseAdmin.from('parents').insert({
+      email: normalizedEmail,
+      subscriber_state: 'potential',
+      marketing_source: 'landing_page',
+      sample_requested_at: new Date().toISOString(),
+    })
+
+    if (parentInsertError) {
+      console.error('Unable to create potential subscriber record:', parentInsertError)
+      return NextResponse.json({ error: 'Something went wrong. Try again!' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, sampleEmailSent: false })
   } catch (err) {
     console.error('Subscribe endpoint failed:', err)
     return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 })

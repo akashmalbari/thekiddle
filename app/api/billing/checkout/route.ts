@@ -14,8 +14,9 @@ export async function POST(req: NextRequest) {
   const appUrl = getAppUrlFromRequest(req)
   try {
     const { parentName, email, childAge, plan } = await req.json()
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
 
-    if (!parentName || !email || !email.includes('@')) {
+    if (!parentName || !normalizedEmail || !normalizedEmail.includes('@')) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -26,26 +27,69 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Pricing is not configured for this plan yet.' }, { status: 500 })
     }
 
-    const { data: parent, error: parentError } = await supabaseAdmin
+    const { data: existingParent, error: existingParentError } = await supabaseAdmin
       .from('parents')
-      .upsert(
-        {
-          name: parentName,
-          parent_name: parentName,
-          email,
-          subscriber_state: 'potential',
-          subscription_intent_at: new Date().toISOString(),
-        },
-        { onConflict: 'email', ignoreDuplicates: false }
-      )
-      .select('id, email')
-      .single()
+      .select('id,email,subscriber_state')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
 
-    if (parentError || !parent) {
+    if (existingParentError) {
       return NextResponse.json(
         { error: 'Unable to prepare account. Please try again.' },
         { status: 500 }
       )
+    }
+
+    if (existingParent?.subscriber_state === 'active') {
+      return NextResponse.json(
+        { error: 'This email is already subscribed.' },
+        { status: 409 }
+      )
+    }
+
+    let parent: { id: string; email: string } | null = null
+
+    if (existingParent?.id) {
+      const { data: updatedParent, error: updateParentError } = await supabaseAdmin
+        .from('parents')
+        .update({
+          name: parentName,
+          parent_name: parentName,
+          subscription_intent_at: new Date().toISOString(),
+        })
+        .eq('id', existingParent.id)
+        .select('id,email')
+        .single()
+
+      if (updateParentError || !updatedParent) {
+        return NextResponse.json(
+          { error: 'Unable to prepare account. Please try again.' },
+          { status: 500 }
+        )
+      }
+
+      parent = updatedParent
+    } else {
+      const { data: insertedParent, error: insertParentError } = await supabaseAdmin
+        .from('parents')
+        .insert({
+          name: parentName,
+          parent_name: parentName,
+          email: normalizedEmail,
+          subscriber_state: 'potential',
+          subscription_intent_at: new Date().toISOString(),
+        })
+        .select('id, email')
+        .single()
+
+      if (insertParentError || !insertedParent) {
+        return NextResponse.json(
+          { error: 'Unable to prepare account. Please try again.' },
+          { status: 500 }
+        )
+      }
+
+      parent = insertedParent
     }
 
     if (Number.isFinite(Number(childAge))) {
