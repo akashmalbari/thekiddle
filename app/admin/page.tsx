@@ -102,7 +102,7 @@ export default function AdminPage() {
   const [newsletterFile, setNewsletterFile] = useState<File | null>(null)
   const [uploadingPdf, setUploadingPdf] = useState(false)
   const [savingNewsletter, setSavingNewsletter] = useState(false)
-  const [sendConfig, setSendConfig] = useState<{ testMode: boolean; testEmail: string }>({ testMode: false, testEmail: '' })
+  const [sendingNewsletters, setSendingNewsletters] = useState(false)
 
   const handleLogin = async () => {
     setLoginLoading(true); setLoginErr('')
@@ -180,14 +180,21 @@ export default function AdminPage() {
     }
   }
 
-  const loadSendConfig = async () => {
+  const sendNewsletters = async () => {
+    setNewsletterMsg('')
+    setSendingNewsletters(true)
+
     try {
-      const res = await authFetch('/api/admin/newsletters/send-config')
+      const res = await authFetch('/api/admin/send-newsletters', { method: 'POST' })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to load send config')
-      setSendConfig({ testMode: !!data.testMode, testEmail: data.testEmail || '' })
-    } catch {
-      // keep default silent fallback
+      if (!res.ok) throw new Error(data.error || 'Unable to send newsletters')
+
+      setNewsletterMsg(`✅ ${data.sent_count || 0} newsletters sent, ${data.skipped_due_to_weekly_limit || 0} skipped (weekly), ${data.skipped_unsubscribed || 0} skipped (unsubscribed/inactive)`)
+      await loadNewsletters()
+    } catch (e: any) {
+      setNewsletterMsg(`⚠️ ${e.message}`)
+    } finally {
+      setSendingNewsletters(false)
     }
   }
 
@@ -250,27 +257,6 @@ export default function AdminPage() {
     }
   }
 
-  const sendNewsletter = async (newsletter: NewsletterRecord) => {
-    setNewsletterMsg('')
-    try {
-      const dryRunRes = await authFetch(`/api/admin/newsletters/${newsletter.id}/send?dryRun=true`, { method: 'POST' })
-      const dryRunData = await dryRunRes.json()
-      if (!dryRunRes.ok) throw new Error(dryRunData.error || 'Unable to prepare send')
-
-      const confirmation = window.confirm(
-        `Send next newsletters now?\n\nEligible active subscribers: ${dryRunData.eligibleParentCount || 0}\nBehavior: ${dryRunData.description || 'Each active subscriber receives their next newsletter in sequence.'}`
-      )
-      if (!confirmation) return
-
-      const res = await authFetch(`/api/admin/newsletters/${newsletter.id}/send`, { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Unable to send newsletter')
-      setNewsletterMsg(`✅ Send completed — Sent: ${data.sentCount}, Failed: ${data.failedCount}, Skipped: ${data.skippedCount}`)
-      await loadNewsletters()
-    } catch (e: any) {
-      setNewsletterMsg(`⚠️ ${e.message}`)
-    }
-  }
 
   const deleteNewsletter = async (newsletter: NewsletterRecord) => {
     setNewsletterMsg('')
@@ -385,7 +371,6 @@ export default function AdminPage() {
       loadPricing()
       loadContactQueries()
       loadNewsletters()
-      loadSendConfig()
     }
   }, [authed])
 
@@ -518,53 +503,21 @@ export default function AdminPage() {
         {/* NEWSLETTERS */}
         {tab === 'newsletters' && (
           <div>
-            <div style={{ marginBottom: 14, background: sendConfig.testMode ? '#FFF0EF' : '#E6FAF9', border: `2px solid ${sendConfig.testMode ? '#FFAAA5' : '#6ECDC8'}`, borderRadius: 12, padding: '10px 14px' }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: sendConfig.testMode ? '#E07D78' : '#4AADA8', marginBottom: 8 }}>
-                {sendConfig.testMode ? 'SELECTED MODE ACTIVE' : 'PRODUCTION MODE ACTIVE'}
-                {sendConfig.testMode && sendConfig.testEmail ? ` — Emails will only be sent to ${sendConfig.testEmail}` : ''}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'center' }}>
-                <input
-                  style={{ ...inp, background: 'white' }}
-                  type="text"
-                  placeholder="test1@email.com, test2@email.com"
-                  value={sendConfig.testEmail}
-                  onChange={e => setSendConfig(cfg => ({ ...cfg, testEmail: e.target.value }))}
-                />
-                <button
-                  onClick={() => setSendConfig(cfg => ({ ...cfg, testMode: !cfg.testMode }))}
-                  style={{ padding: '9px 14px', borderRadius: 10, border: 'none', background: sendConfig.testMode ? '#FFF8E1' : '#FFF0EF', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}
-                >
-                  Switch to {sendConfig.testMode ? 'Production' : 'Selected'}
-                </button>
-                <button
-                  onClick={async () => {
-                    setNewsletterMsg('')
-                    try {
-                      const res = await authFetch('/api/admin/newsletters/send-config', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ testMode: sendConfig.testMode, testEmail: sendConfig.testEmail }),
-                      })
-                      const data = await res.json()
-                      if (!res.ok) throw new Error(data.error || 'Unable to save send settings')
-                      setNewsletterMsg('✅ Send settings saved')
-                      await loadSendConfig()
-                    } catch (e: any) {
-                      setNewsletterMsg(`⚠️ ${e.message}`)
-                    }
-                  }}
-                  style={{ padding: '9px 14px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}
-                >
-                  Save Settings
-                </button>
-              </div>
-            </div>
             {newsletterMsg && (
               <div style={{ marginBottom: 14, background: 'white', border: '2px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
                 {newsletterMsg}
               </div>
             )}
+
+            <div style={{ marginBottom: 14 }}>
+              <button
+                onClick={sendNewsletters}
+                disabled={sendingNewsletters}
+                style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: sendingNewsletters ? 'wait' : 'pointer' }}
+              >
+                {sendingNewsletters ? 'Sending Newsletters...' : 'Send Newsletters'}
+              </button>
+            </div>
 
             <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: 16, marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Upload Newsletter PDF</div>
@@ -596,9 +549,6 @@ export default function AdminPage() {
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => previewNewsletter(n.id)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#E6FAF9', color: '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>Preview</button>
-                        <button onClick={() => sendNewsletter(n)} disabled={n.status === 'sending'} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: n.status === 'sending' ? 'wait' : 'pointer' }}>
-                          {n.status === 'sending' ? 'Sending...' : 'Send Next Newsletter to Active Subscribers'}
-                        </button>
                         <button onClick={() => deleteNewsletter(n)} disabled={n.status === 'sending'} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFF0EF', color: '#E07D78', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: n.status === 'sending' ? 'not-allowed' : 'pointer' }}>
                           Delete
                         </button>

@@ -80,9 +80,17 @@ async function upsertSubscription(parentId: string, billingCustomerId: number | 
   }
 
   if (data?.id) {
+    const canceledAt = subscription.canceled_at
+      ? new Date(subscription.canceled_at * 1000).toISOString()
+      : null
+
     const { error: parentUpdateError } = await supabaseAdmin
       .from('parents')
-      .update({ active_subscription_id: data.id, subscription_status: data.status })
+      .update({
+        active_subscription_id: data.id,
+        subscription_status: data.status,
+        unsubscribed_at: canceledAt,
+      })
       .eq('id', parentId)
 
     if (parentUpdateError) {
