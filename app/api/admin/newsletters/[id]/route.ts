@@ -31,12 +31,22 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     return NextResponse.json({ error: 'Cannot delete while newsletter is sending' }, { status: 409 })
   }
 
-  if (newsletter.pdf_path) {
-    const { error: storageError } = await supabaseAdmin.storage.from(BUCKET).remove([newsletter.pdf_path])
+  const { error: logsDeleteError } = await supabaseAdmin
+    .from('newsletter_send_logs')
+    .delete()
+    .eq('newsletter_id', newsletterId)
 
-    if (storageError) {
-      return NextResponse.json({ error: `Failed to delete PDF file: ${storageError.message}` }, { status: 500 })
-    }
+  if (logsDeleteError) {
+    return NextResponse.json({ error: `Failed to delete newsletter send logs: ${logsDeleteError.message}` }, { status: 500 })
+  }
+
+  const { error: progressDeleteError } = await supabaseAdmin
+    .from('parent_newsletter_progress')
+    .delete()
+    .eq('newsletter_id', newsletterId)
+
+  if (progressDeleteError) {
+    return NextResponse.json({ error: `Failed to delete newsletter progress: ${progressDeleteError.message}` }, { status: 500 })
   }
 
   const { error: deleteError } = await supabaseAdmin
@@ -45,12 +55,25 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     .eq('id', newsletterId)
 
   if (deleteError) {
-    console.error('Newsletter DB delete failed after storage delete', {
-      newsletter_id: newsletterId,
-      error: deleteError.message,
-      timestamp: new Date().toISOString(),
-    })
-    return NextResponse.json({ error: 'PDF deleted but database deletion failed. Please contact support.' }, { status: 500 })
+    return NextResponse.json({ error: `Failed to delete newsletter: ${deleteError.message}` }, { status: 500 })
+  }
+
+  if (newsletter.pdf_path) {
+    const { error: storageError } = await supabaseAdmin.storage.from(BUCKET).remove([newsletter.pdf_path])
+
+    if (storageError) {
+      console.error('Newsletter storage delete failed after database delete', {
+        newsletter_id: newsletterId,
+        path: newsletter.pdf_path,
+        error: storageError.message,
+        timestamp: new Date().toISOString(),
+      })
+
+      return NextResponse.json({
+        success: true,
+        warning: `Newsletter deleted, but PDF cleanup failed: ${storageError.message}`,
+      })
+    }
   }
 
   console.log('Newsletter deleted', {
