@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
 import { sendNextNewsletterToParent } from '@/lib/email/sendNextNewsletterToParent'
 import { markParentBillingState } from '@/lib/subscriptionState'
 
@@ -175,9 +174,9 @@ export async function GET(req: NextRequest) {
       .eq('id', parentId)
       .maybeSingle()
 
-    let welcomeDelivery: { status: 'sent' | 'failed' | 'skipped'; reason?: string } = {
+    const welcomeDelivery: { status: 'skipped'; reason: string } = {
       status: 'skipped',
-      reason: 'missing_recipient_email',
+      reason: 'handled_by_webhook',
     }
     let newsletterDelivery:
       | { status: 'sent'; newsletterId?: number }
@@ -189,18 +188,8 @@ export async function GET(req: NextRequest) {
     const recipientEmail = session.customer_details?.email || customerEmail || parent?.email || null
     if (recipientEmail) {
       if (sessionConfirmState.alreadyConfirmed) {
-        welcomeDelivery = { status: 'skipped', reason: 'already_confirmed' }
         newsletterDelivery = { status: 'skipped', reason: 'already_confirmed' }
       } else {
-        try {
-          await sendWelcomeEmail(recipientEmail)
-          welcomeDelivery = { status: 'sent' }
-        } catch (welcomeErr: any) {
-          const reason = welcomeErr?.message || 'unknown_error'
-          welcomeDelivery = { status: 'failed', reason }
-          console.error('Welcome email send failed in confirm route:', reason)
-        }
-
         try {
           const newsletterResult = await sendNextNewsletterToParent({
             parentId,
@@ -227,7 +216,7 @@ export async function GET(req: NextRequest) {
           console.error('First newsletter send failed in confirm route:', reason)
         }
 
-        if (welcomeDelivery.status !== 'failed' && newsletterDelivery.status !== 'failed') {
+        if (newsletterDelivery.status !== 'failed') {
           await markCheckoutSessionConfirmed(sessionId)
         }
       }
