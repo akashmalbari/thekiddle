@@ -489,7 +489,7 @@ export default function HomePage() {
               Kiddle started with a simple thought — in a world full of screens and busy schedules, children don’t just need more activities, they need more meaningful moments.
             </p>
             <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600 }}>
-              Every Kiddle week is thoughtfully curated to help parents and kids slow down, connect, and grow together — through simple, playful learning that fits into real life.
+              Every Kiddle is thoughtfully curated to help parents and kids slow down, connect, and grow together — through simple, playful learning that fits into real life.
             </p>
           </div>
 
