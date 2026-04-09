@@ -18,7 +18,7 @@ export default function TermsOfServicePage() {
 
         <section style={{ marginBottom: 20 }}>
           <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>2. Service Scope</h2>
-          <p style={{ fontSize: 15, lineHeight: 1.75, fontWeight: 600 }}>The Kiddle provides educational and recreational newsletter content for young children via parent/guardian-managed access. Services may evolve over time, including feature additions, removals, or modifications.</p>
+          <p style={{ fontSize: 15, lineHeight: 1.75, fontWeight: 600 }}>The Kiddle provides educational and recreational workbook content for young children via parent/guardian-managed access. Services may evolve over time, including feature additions, removals, or modifications.</p>
         </section>
 
         <section style={{ marginBottom: 20 }}>

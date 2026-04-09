@@ -388,7 +388,7 @@ export default function HomePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {[
               { n: '1', emoji: '📧', title: 'Subscribe', desc: 'Choose your plan, drop in your email, and you\'re part of the Kiddle family. Takes 30 seconds.', color: '#FFD166' },
-              { n: '2', emoji: '📬', title: 'Receive Weekly', desc: 'Receive your weekly Kiddle pack—just print at home, at work, or a nearby store.', color: '#FFAAA5' },
+              { n: '2', emoji: '📬', title: 'Receive Weekly', desc: 'Receive your weekly Kiddle pack every Monday — just print at home, at work, or a nearby store.', color: '#FFAAA5' },
               { n: '3', emoji: '🌟', title: 'Play & Learn', desc: 'Simple, joyful activities designed to keep your child engaged and learning.', color: '#6ECDC8' },
             ].map((s, i) => (
               <div key={i} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 24, alignItems: isMobile ? 'center' : 'flex-start', textAlign: isMobile ? 'center' : 'left', background: 'white', borderRadius: 22, padding: isMobile ? '24px 20px' : '28px 32px', border: '2px solid var(--border)', transition: 'border-color 0.2s, transform 0.2s' }}
@@ -428,7 +428,7 @@ export default function HomePage() {
               </div>
               <p style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600, marginBottom: 28 }}>Perfect for trying it out</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
-                {['4 weekly newsletters', '12+ activities per month', 'Printable activity sheets', 'Parent guidance tips', 'Cancel anytime'].map((f, i) => (
+                {['4 weekly Kiddles', '12+ activities per month', 'Printable activity sheets', 'Parent guidance tips', 'Cancel anytime'].map((f, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600, color: 'var(--body)' }}>
                     <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#FFF8E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>✓</span>
                     {f}
@@ -454,7 +454,7 @@ export default function HomePage() {
               <div style={{ display: 'inline-block', background: '#E6FAF9', color: '#4AADA8', borderRadius: 'var(--r-full)', padding: '3px 12px', fontSize: 12, fontWeight: 800, marginBottom: 8 }}>1 Month Free</div>
               <p style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600, marginBottom: 28 }}>Best value for dedicated families</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
-                {['52 weekly newsletters', '150+ activities per year', 'Printable activity sheets', 'Parent guidance tips', 'Exclusive seasonal activities', 'Priority email support'].map((f, i) => (
+                {['52 weekly Kiddles', '150+ activities per year', 'Printable activity sheets', 'Parent guidance tips', 'Exclusive seasonal activities', 'Priority email support'].map((f, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600, color: 'var(--body)' }}>
                     <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#FFF8E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0, color: '#E6B84A' }}>✓</span>
                     {f}

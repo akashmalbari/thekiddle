@@ -43,7 +43,7 @@ export async function sendWelcomeEmail(recipientEmail: string) {
       <p>
         <a href="${sampleNewsletterUrl}" target="_blank" rel="noopener noreferrer"
            style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">
-           Open Sample Newsletter
+           Open Sample Kiddle
         </a>
       </p>
       <p>

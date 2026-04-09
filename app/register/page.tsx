@@ -154,7 +154,7 @@ function RegisterInner() {
         <div style={{ fontSize: 80, marginBottom: 20, animation: 'float-y 3s ease-in-out infinite' }}>🎉</div>
         <h1 style={{ fontSize: 40, fontWeight: 800, color: 'var(--dark)', marginBottom: 14, lineHeight: 1.2 }}>Welcome to The Kiddle!</h1>
         <p style={{ fontSize: 17, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600 }}>
-          Your first newsletter is on its way to <strong style={{ color: '#FFD166' }}>{email}</strong>. Get ready for some screen-free fun!
+          Your first Kiddle is on its way to <strong style={{ color: '#FFD166' }}>{email}</strong>. Get ready for some screen-free fun!
         </p>
         <Link href="/" style={{ display: 'inline-block', background: '#FFD166', color: '#1A1208', padding: '15px 40px', borderRadius: 'var(--r-full)', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 16, textDecoration: 'none', boxShadow: 'var(--shadow-yellow)' }}>
           Back to home 🏠
@@ -179,7 +179,7 @@ function RegisterInner() {
               <div style={{ textAlign: 'center', marginBottom: 32 }}>
                 <div style={{ fontSize: 52, marginBottom: 14 }}>👋</div>
                 <h1 style={{ fontSize: isMobile ? 28 : 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>Let&apos;s get started!</h1>
-                <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>Just a couple of details to get your newsletter ready.</p>
+                <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>Just a couple of details to get your Kiddle ready.</p>
               </div>
               <div style={card}>
                 <div style={{ marginBottom: 18 }}>
@@ -236,7 +236,7 @@ function RegisterInner() {
               <div style={card}>
                 {/* Plan picker */}
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 24 }}>
-                  {[{ id: 'monthly', label: 'Monthly', price: `${pricing.monthlyDisplay}/mo`, note: '4 newsletters' }, { id: 'yearly', label: 'Yearly', price: `${pricing.yearlyDisplay}/yr`, note: '1 month free ⭐' }].map(p => (
+                  {[{ id: 'monthly', label: 'Monthly', price: `${pricing.monthlyDisplay}/mo`, note: '4 Kiddles' }, { id: 'yearly', label: 'Yearly', price: `${pricing.yearlyDisplay}/yr`, note: '1 month free ⭐' }].map(p => (
                     <div key={p.id} onClick={() => setPlan(p.id)} style={{ borderRadius: 16, padding: '16px', border: `2px solid ${plan === p.id ? '#FFD166' : 'var(--border)'}`, background: plan === p.id ? '#FFF8E1' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{p.label}</div>
                       <div style={{ fontFamily: "'Baloo 2',cursive", fontSize: 22, fontWeight: 800, color: 'var(--dark)' }}>{p.price}</div>
