@@ -491,6 +491,9 @@ export default function HomePage() {
             <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600 }}>
               Every Kiddle is thoughtfully curated to help parents and kids slow down, connect, and grow together — through simple, playful learning that fits into real life.
             </p>
+            <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600 }}>
+              -- Manali Killedar - Malbari (Founder)
+            </p>
           </div>
 
           <div style={{ width: '100%', maxWidth: isMobile ? 560 : 'none', margin: '0 auto' }}>
