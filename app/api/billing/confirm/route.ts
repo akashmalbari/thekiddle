@@ -2,79 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import { sendNextNewsletterToParent } from '@/lib/email/sendNextNewsletterToParent'
 import { markParentBillingState } from '@/lib/subscriptionState'
-
-function isMissingOrInaccessibleWebhookEventsTableError(err: unknown) {
-  const message = err instanceof Error ? err.message : String(err || '')
-  return (
-    message.includes('relation "webhook_events" does not exist') ||
-    message.includes('permission denied for table webhook_events')
-  )
-}
-
-const CHECKOUT_CONFIRM_EVENT_PREFIX = 'checkout_confirm:'
-
-function checkoutConfirmEventId(sessionId: string) {
-  return `${CHECKOUT_CONFIRM_EVENT_PREFIX}${sessionId}`
-}
-
-async function isCheckoutSessionAlreadyConfirmed(sessionId: string) {
-  const supabaseAdmin = getSupabaseAdmin()
-
-  const lookup = await supabaseAdmin
-    .from('webhook_events')
-    .select('processing_status')
-    .eq('provider', 'stripe')
-    .eq('provider_event_id', checkoutConfirmEventId(sessionId))
-    .maybeSingle()
-
-  if (lookup.error) {
-    if (isMissingOrInaccessibleWebhookEventsTableError(lookup.error)) {
-      return { tableAvailable: false as const, alreadyConfirmed: false }
-    }
-
-    throw new Error(`Failed to lookup checkout confirm marker: ${lookup.error.message}`)
-  }
-
-  return {
-    tableAvailable: true as const,
-    alreadyConfirmed: lookup.data?.processing_status === 'processed',
-  }
-}
-
-async function markCheckoutSessionConfirmed(sessionId: string) {
-  const supabaseAdmin = getSupabaseAdmin()
-
-  const upsert = await supabaseAdmin.from('webhook_events').upsert(
-    {
-      provider: 'stripe',
-      provider_event_id: checkoutConfirmEventId(sessionId),
-      event_type: 'checkout.session.confirmed',
-      payload: { session_id: sessionId },
-      processing_status: 'processed',
-      processed_at: new Date().toISOString(),
-      error_message: null,
-    },
-    { onConflict: 'provider,provider_event_id' }
-  )
-
-  if (upsert.error) {
-    if (isMissingOrInaccessibleWebhookEventsTableError(upsert.error)) {
-      return { tableAvailable: false as const }
-    }
-
-    throw new Error(`Failed to mark checkout session confirmed: ${upsert.error.message}`)
-  }
-
-  return { tableAvailable: true as const }
-}
 
 function extractSubscriptionPlanCode(subscription: Stripe.Subscription): 'monthly' | 'yearly' {
   const interval = subscription.items.data[0]?.price?.recurring?.interval
   return interval === 'year' ? 'yearly' : 'monthly'
 }
-
 
 export async function GET(req: NextRequest) {
   try {
@@ -85,8 +18,6 @@ export async function GET(req: NextRequest) {
 
     const stripe = getStripe()
     const supabaseAdmin = getSupabaseAdmin()
-
-    const sessionConfirmState = await isCheckoutSessionAlreadyConfirmed(sessionId)
 
     const session = await stripe.checkout.sessions.retrieve(sessionId)
     const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id
@@ -178,49 +109,12 @@ export async function GET(req: NextRequest) {
       status: 'skipped',
       reason: 'handled_by_webhook',
     }
-    let newsletterDelivery:
-      | { status: 'sent'; newsletterId?: number }
-      | { status: 'failed' | 'skipped'; reason: string } = {
+    const newsletterDelivery: { status: 'skipped'; reason: string } = {
       status: 'skipped',
-      reason: 'missing_recipient_email',
+      reason: 'admin_send_required',
     }
 
     const recipientEmail = session.customer_details?.email || customerEmail || parent?.email || null
-    if (recipientEmail) {
-      if (sessionConfirmState.alreadyConfirmed) {
-        newsletterDelivery = { status: 'skipped', reason: 'already_confirmed' }
-      } else {
-        try {
-          const newsletterResult = await sendNextNewsletterToParent({
-            parentId,
-            email: recipientEmail,
-            emailTokenVersion: parent?.email_token_version || 1,
-          })
-
-          if (newsletterResult?.sent) {
-            newsletterDelivery = { status: 'sent', newsletterId: newsletterResult.newsletterId }
-          } else {
-            newsletterDelivery = {
-              status: 'skipped',
-              reason: newsletterResult?.reason || 'unknown_reason',
-            }
-            console.log('First newsletter skipped in confirm route:', {
-              parentId,
-              email: recipientEmail,
-              reason: newsletterResult?.reason || 'unknown_reason',
-            })
-          }
-        } catch (newsletterErr: any) {
-          const reason = newsletterErr?.message || 'unknown_error'
-          newsletterDelivery = { status: 'failed', reason }
-          console.error('First newsletter send failed in confirm route:', reason)
-        }
-
-        if (newsletterDelivery.status !== 'failed') {
-          await markCheckoutSessionConfirmed(sessionId)
-        }
-      }
-    }
 
     return NextResponse.json({
       success: true,

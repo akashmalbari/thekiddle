@@ -154,7 +154,7 @@ function RegisterInner() {
         <div style={{ fontSize: 80, marginBottom: 20, animation: 'float-y 3s ease-in-out infinite' }}>🎉</div>
         <h1 style={{ fontSize: 40, fontWeight: 800, color: 'var(--dark)', marginBottom: 14, lineHeight: 1.2 }}>Welcome to The Kiddle!</h1>
         <p style={{ fontSize: 17, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600 }}>
-          Your first Kiddle is on its way to <strong style={{ color: '#FFD166' }}>{email}</strong>. Get ready for some screen-free fun!
+          Your welcome email is on its way to <strong style={{ color: '#FFD166' }}>{email}</strong>. It includes your sample Kiddle to get started.
         </p>
         <Link href="/" style={{ display: 'inline-block', background: '#FFD166', color: '#1A1208', padding: '15px 40px', borderRadius: 'var(--r-full)', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 16, textDecoration: 'none', boxShadow: 'var(--shadow-yellow)' }}>
           Back to home 🏠

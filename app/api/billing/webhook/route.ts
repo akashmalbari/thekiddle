@@ -3,7 +3,6 @@ import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail'
-import { sendNextNewsletterToParent } from '@/lib/email/sendNextNewsletterToParent'
 import { markParentBillingState } from '@/lib/subscriptionState'
 
 export const runtime = 'nodejs'
@@ -177,56 +176,27 @@ async function handleEvent(event: Stripe.Event) {
           countryCode: session.customer_details?.address?.country || null,
         })
 
-        // Keep paid signup flow aligned with UI promise: send sample/welcome email after successful checkout.
+        // Paid signup should only send the welcome email here.
+        // Newsletter issues are sent later via the admin workflow.
         if (checkoutEmail) {
           try {
             await sendWelcomeEmail(checkoutEmail)
-            logWebhookDebug('checkout.session.completed.sample_sent', {
+            logWebhookDebug('checkout.session.completed.welcome_email_sent', {
               eventId: event.id,
               parentId,
               email: checkoutEmail,
             })
-          } catch (sampleErr: any) {
+          } catch (welcomeErr: any) {
             // Don't fail webhook processing for ancillary email failure.
-            logWebhookDebug('checkout.session.completed.sample_send_failed', {
+            logWebhookDebug('checkout.session.completed.welcome_email_send_failed', {
               eventId: event.id,
               parentId,
               email: checkoutEmail,
-              error: sampleErr?.message || 'unknown_error',
-            })
-          }
-
-          try {
-            const newsletterResult = await sendNextNewsletterToParent({
-              parentId,
-              email: checkoutEmail,
-            })
-
-            if (newsletterResult?.sent) {
-              logWebhookDebug('checkout.session.completed.first_newsletter_sent', {
-                eventId: event.id,
-                parentId,
-                email: checkoutEmail,
-                newsletterId: newsletterResult.newsletterId || null,
-              })
-            } else {
-              logWebhookDebug('checkout.session.completed.first_newsletter_skipped', {
-                eventId: event.id,
-                parentId,
-                email: checkoutEmail,
-                reason: newsletterResult?.reason || 'unknown_reason',
-              })
-            }
-          } catch (newsletterErr: any) {
-            logWebhookDebug('checkout.session.completed.first_newsletter_failed', {
-              eventId: event.id,
-              parentId,
-              email: checkoutEmail,
-              error: newsletterErr?.message || 'unknown_error',
+              error: welcomeErr?.message || 'unknown_error',
             })
           }
         } else {
-          logWebhookDebug('checkout.session.completed.sample_skipped', {
+          logWebhookDebug('checkout.session.completed.welcome_email_skipped', {
             eventId: event.id,
             parentId,
             reason: 'missing_checkout_email',
