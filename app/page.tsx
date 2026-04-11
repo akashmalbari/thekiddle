@@ -36,7 +36,7 @@ function YellowBtn({ children, onClick, style, type = 'button', disabled = false
   return (
     <button type={type} disabled={disabled} onClick={onClick}
       onMouseEnter={() => isInteractive && setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ background: '#FFD166', color: '#1A1208', border: 'none', borderRadius: 'var(--r-full)', padding: '14px 32px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 16, cursor: isInteractive ? 'pointer' : 'wait', opacity: disabled ? 0.7 : 1, boxShadow: hov && isInteractive ? '0 8px 28px rgba(255,209,102,0.55)' : 'var(--shadow-yellow)', transform: hov && isInteractive ? 'translateY(-2px)' : 'none', transition: 'all 0.2s', ...style }}>
+      style={{ background: '#FFD166', backgroundImage: 'none', WebkitAppearance: 'none', appearance: 'none', color: '#1A1208', border: 'none', borderRadius: 'var(--r-full)', padding: '14px 32px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 16, cursor: isInteractive ? 'pointer' : 'wait', opacity: disabled ? 0.7 : 1, boxShadow: hov && isInteractive ? '0 8px 28px rgba(255,209,102,0.55)' : 'var(--shadow-yellow)', transform: hov && isInteractive ? 'translateY(-2px)' : 'none', transition: 'all 0.2s', ...style }}>
       {children}
     </button>
   )
@@ -94,15 +94,20 @@ function EmailCapture({ onSuccess, isCompact = false }: { onSuccess?: (email: st
     fontSize: 15,
     fontWeight: 700,
     color: 'var(--dark)',
-    background: 'transparent',
+    background: isCompact ? '#FFFFFF' : 'transparent',
+    backgroundImage: 'none',
+    WebkitAppearance: 'none',
+    appearance: 'none',
+    boxShadow: 'none',
+    opacity: 1,
     minWidth: isCompact ? 0 : 220,
-    textAlign: isCompact ? 'left' : 'left',
+    textAlign: 'left',
     padding: isCompact ? '14px 16px' : '6px 8px',
   }
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 8 }}>
-      <div style={{ display: 'flex', flexDirection: isCompact ? 'column' : 'row', gap: 10, background: 'white', borderRadius: isCompact ? 'var(--r-xl)' : 'var(--r-full)', padding: isCompact ? '16px' : '6px 10px', boxShadow: 'var(--shadow-md)', border: '2px solid var(--border)', alignItems: isCompact ? 'stretch' : 'center' }}>
+      <div style={{ display: 'flex', flexDirection: isCompact ? 'column' : 'row', gap: 10, background: isCompact ? '#FFFFFF' : 'white', borderRadius: isCompact ? 'var(--r-xl)' : 'var(--r-full)', padding: isCompact ? '16px' : '6px 10px', boxShadow: isCompact ? '0 10px 24px rgba(26,18,8,0.08)' : 'var(--shadow-md)', border: '2px solid var(--border)', alignItems: isCompact ? 'stretch' : 'center' }}>
         {isCompact ? (
           <div style={{ display: 'grid', gap: 8 }}>
             <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.5, color: '#BF8C00', textTransform: 'uppercase' }}>Get your free sample</div>
@@ -118,7 +123,7 @@ function EmailCapture({ onSuccess, isCompact = false }: { onSuccess?: (email: st
             placeholder="Enter your email address"
             style={inputStyle} />
         )}
-        <YellowBtn type="submit" disabled={loading} style={{ borderRadius: 'var(--r-full)', padding: isCompact ? '14px 18px' : '11px 28px', fontSize: isCompact ? 16 : 15, marginInline: 'auto', width: isCompact ? '100%' : 'auto' }}>
+        <YellowBtn type="submit" disabled={loading} style={{ borderRadius: 'var(--r-full)', padding: isCompact ? '14px 18px' : '11px 28px', fontSize: isCompact ? 16 : 15, marginInline: 'auto', width: isCompact ? '100%' : 'auto', boxShadow: isCompact ? 'none' : undefined, border: isCompact ? '2px solid #E6B84A' : undefined }}>
           {loading ? 'Sending sample...' : isCompact ? 'Email Me a Free Sample →' : 'Get a Sample Kiddle For Free →'}
         </YellowBtn>
       </div>
@@ -523,7 +528,7 @@ export default function HomePage() {
             <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600, marginBottom: 16 }}>
               Kiddle started with a simple thought — in a world full of screens and busy schedules, children don’t just need more activities, they need more meaningful moments.
             </p>
-            <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600 }}>
+            <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600, marginBottom: 16 }}>
               Every Kiddle is thoughtfully curated to help parents and kids slow down, connect, and grow together — through simple, playful learning that fits into real life.
             </p>
             <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600 }}>
