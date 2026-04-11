@@ -30,12 +30,13 @@ function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
 }
 
 /* ── SHARED BUTTON ──────────────────────────────────────── */
-function YellowBtn({ children, onClick, style }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties }) {
+function YellowBtn({ children, onClick, style, type = 'button', disabled = false }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties; type?: 'button' | 'submit' | 'reset'; disabled?: boolean }) {
   const [hov, setHov] = useState(false)
+  const isInteractive = !disabled
   return (
-    <button onClick={onClick}
-      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ background: '#FFD166', color: '#1A1208', border: 'none', borderRadius: 'var(--r-full)', padding: '14px 32px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 16, cursor: 'pointer', boxShadow: hov ? '0 8px 28px rgba(255,209,102,0.55)' : 'var(--shadow-yellow)', transform: hov ? 'translateY(-2px)' : 'none', transition: 'all 0.2s', ...style }}>
+    <button type={type} disabled={disabled} onClick={onClick}
+      onMouseEnter={() => isInteractive && setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{ background: '#FFD166', color: '#1A1208', border: 'none', borderRadius: 'var(--r-full)', padding: '14px 32px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 16, cursor: isInteractive ? 'pointer' : 'wait', opacity: disabled ? 0.7 : 1, boxShadow: hov && isInteractive ? '0 8px 28px rgba(255,209,102,0.55)' : 'var(--shadow-yellow)', transform: hov && isInteractive ? 'translateY(-2px)' : 'none', transition: 'all 0.2s', ...style }}>
       {children}
     </button>
   )
@@ -53,7 +54,7 @@ function Tag({ children, color = 'yellow' }: { children: React.ReactNode; color?
 }
 
 /* ── EMAIL CAPTURE ───────────────────────────────────────── */
-function EmailCapture({ onSuccess }: { onSuccess?: (email: string) => void }) {
+function EmailCapture({ onSuccess, isCompact = false }: { onSuccess?: (email: string) => void; isCompact?: boolean }) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -71,25 +72,59 @@ function EmailCapture({ onSuccess }: { onSuccess?: (email: string) => void }) {
     finally { setLoading(false) }
   }
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!loading) submit()
+  }
+
   if (done) return (
     <div style={{ background: '#E6FAF9', border: '2px solid #6ECDC8', borderRadius: 'var(--r-lg)', padding: '18px 24px', textAlign: 'center' }} className="pop-in">
       <div style={{ fontSize: 32, marginBottom: 6 }}>🎉</div>
-      <div style={{ fontWeight: 800, fontSize: 17, color: '#2C2016' }}>You&apos;re in! Check your inbox for a sample Kiddle.</div>
+      <div style={{ fontWeight: 800, fontSize: 17, color: '#2C2016' }}>You're in! Check your inbox for a sample Kiddle.</div>
     </div>
   )
 
+  const inputStyle: React.CSSProperties = {
+    flex: 1,
+    width: '100%',
+    border: isCompact ? '2px solid var(--border)' : 'none',
+    borderRadius: isCompact ? 'var(--r-md)' : 0,
+    outline: 'none',
+    fontFamily: "'Nunito',sans-serif",
+    fontSize: 15,
+    fontWeight: 700,
+    color: 'var(--dark)',
+    background: 'transparent',
+    minWidth: isCompact ? 0 : 220,
+    textAlign: isCompact ? 'left' : 'left',
+    padding: isCompact ? '14px 16px' : '6px 8px',
+  }
+
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 10, background: 'white', borderRadius: 'var(--r-full)', padding: '6px 10px', boxShadow: 'var(--shadow-md)', border: '2px solid var(--border)', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-        <input value={email} onChange={e => { setEmail(e.target.value); setError('') }} onKeyDown={e => e.key === 'Enter' && submit()}
-          placeholder="Enter your email address"
-          style={{ flex: 1, border: 'none', outline: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 600, color: 'var(--dark)', background: 'transparent', minWidth: 220, textAlign: 'center' }} />
-        <YellowBtn onClick={submit} style={{ borderRadius: 'var(--r-full)', padding: '11px 28px', fontSize: 15, marginInline: 'auto' }}>
-          {loading ? '⏳' : 'Get a Sample Kiddle For Free →'}
+    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: isCompact ? 'column' : 'row', gap: 10, background: 'white', borderRadius: isCompact ? 'var(--r-xl)' : 'var(--r-full)', padding: isCompact ? '16px' : '6px 10px', boxShadow: 'var(--shadow-md)', border: '2px solid var(--border)', alignItems: isCompact ? 'stretch' : 'center' }}>
+        {isCompact ? (
+          <div style={{ display: 'grid', gap: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.5, color: '#BF8C00', textTransform: 'uppercase' }}>Get your free sample</div>
+            <label style={{ display: 'grid', gap: 8, textAlign: 'left', fontSize: 14, fontWeight: 800, color: 'var(--body)' }}>
+              Email address
+              <input type="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setError('') }}
+                placeholder="name@example.com"
+                style={inputStyle} />
+            </label>
+          </div>
+        ) : (
+          <input type="email" autoComplete="email" aria-label="Email address" value={email} onChange={e => { setEmail(e.target.value); setError('') }}
+            placeholder="Enter your email address"
+            style={inputStyle} />
+        )}
+        <YellowBtn type="submit" disabled={loading} style={{ borderRadius: 'var(--r-full)', padding: isCompact ? '14px 18px' : '11px 28px', fontSize: isCompact ? 16 : 15, marginInline: 'auto', width: isCompact ? '100%' : 'auto' }}>
+          {loading ? 'Sending sample...' : isCompact ? 'Email Me a Free Sample →' : 'Get a Sample Kiddle For Free →'}
         </YellowBtn>
       </div>
-      {error && <p style={{ color: '#E07D78', fontSize: 13, fontWeight: 700, marginTop: 8, paddingLeft: 8 }}>⚠️ {error}</p>}
-    </div>
+      {isCompact && !error && <p style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 700, textAlign: 'center' }}>We’ll send one sample Kiddle straight to your inbox.</p>}
+      {error && <p style={{ color: '#E07D78', fontSize: 13, fontWeight: 700, marginTop: 2, paddingLeft: isCompact ? 0 : 8, textAlign: isCompact ? 'center' : 'left' }}>⚠️ {error}</p>}
+    </form>
   )
 }
 
@@ -313,7 +348,7 @@ export default function HomePage() {
               />
             ))}
           </div>
-          <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–5 · Screen-Free</Tag></div>
+          <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–4 · Screen-Free</Tag></div>
           <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
             Let's Make Learning & Playing{' '}
             <span style={{ color: '#FFD166', position: 'relative', display: 'inline-block' }}>
@@ -327,7 +362,7 @@ export default function HomePage() {
             Kiddle is a weekly, print-ready workbook — thoughtfully curated so you don't have to think twice. Quality time with your child shouldn't require hours of planning. Just open, print, and watch them light up — every single week.
           </p>
           <div style={{ marginBottom: 20, maxWidth: 500, marginInline: 'auto' }}>
-            <EmailCapture />
+            <EmailCapture isCompact={isMobile} />
           </div>
           <p style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
             Start your first Kiddle adventure — no planning needed
@@ -348,7 +383,7 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 24 }}>
             {[
               { emoji: '🎨', title: 'Creative Activities', desc: 'Hands-on arts, crafts, and creative projects that spark imagination and develop fine motor skills.', color: '#FFD166', pale: '#FFF8E1' },
-              { emoji: '📚', title: 'Educational Fun', desc: 'Learning through play with activities designed by early childhood educators for ages 3–5.', color: '#FFAAA5', pale: '#FFF0EF' },
+              { emoji: '📚', title: 'Educational Fun', desc: 'Learning through play with activities designed by early childhood educators for ages 3–4.', color: '#FFAAA5', pale: '#FFF0EF' },
               { emoji: '🏃', title: 'Active Play', desc: 'Movement-based games and activities that get kids moving, grooving, and developing gross motor skills.', color: '#6ECDC8', pale: '#E6FAF9' },
               { emoji: '✂️', title: 'Simple to Set Up', desc: 'Every activity uses materials you already have at home. No shopping trips required.', color: '#FFD166', pale: '#FFF8E1' },
               { emoji: '🧠', title: 'Expert Designed', desc: 'Activities are crafted by early childhood specialists who know exactly what kids this age need.', color: '#FFAAA5', pale: '#FFF0EF' },
@@ -367,7 +402,7 @@ export default function HomePage() {
           </div>
           {/* Stats bar */}
           <div style={{ marginTop: 48, display: 'flex', justifyContent: 'center', gap: 40, flexWrap: 'wrap' }}>
-            {[['12+','Activities/Month'],['100%','Screen-Free'],['Expert','Designed'],['Ages','3–5 Years']].map(([val, lbl], i) => (
+            {[['12+','Activities/Month'],['100%','Screen-Free'],['Expert','Designed'],['Ages','3–4 Years']].map(([val, lbl], i) => (
               <div key={i} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 28, fontWeight: 800, color: '#FFD166', fontFamily: "'Baloo 2',cursive" }}>{val}</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted)' }}>{lbl}</div>

@@ -211,7 +211,7 @@ function RegisterInner() {
                   <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', letterSpacing: 1, textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>Child age</label>
                   <select style={{ ...inputCss, appearance: 'none' } as React.CSSProperties} value={childAge} onChange={e => setChildAge(e.target.value)} onFocus={focus('#FFAAA5') as any} onBlur={blur as any}>
                     <option value="">Select age</option>
-                    {['3','4','5'].map(a => <option key={a} value={a}>{a} years old</option>)}
+                    {['2','3','4','5','6'].map(a => <option key={a} value={a}>{a} years old</option>)}
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>

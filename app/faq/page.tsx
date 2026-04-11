@@ -27,7 +27,7 @@ export default function FAQPage() {
           },
           {
             q: 'Who is Kiddle for?',
-            a: 'Kiddle is designed for parents, caregivers, and educators of children ages 3–5. Children enjoy the activities, but adults guide the experience.',
+            a: 'Kiddle is designed for parents, caregivers, and educators of children ages 3–4. Children enjoy the activities, but adults guide the experience.',
           },
           {
             q: 'What do I receive each week?',
