@@ -302,10 +302,10 @@ export default function HomePage() {
       </nav>
 
       {/* ══ HERO ══════════════════════════════════════════ */}
-      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: isMobile ? '120px 16px 48px' : isTablet ? '110px 24px 56px' : '100px 40px 60px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: isMobile ? '120px 16px 48px' : isTablet ? '110px 24px 56px' : '100px 40px 60px', position: 'relative', overflow: 'hidden', isolation: 'isolate' }}>
         {/* Soft background blobs */}
-        <div style={{ position: 'absolute', top: '5%', right: isMobile ? '-25%' : '5%', width: isMobile ? 260 : 480, height: isMobile ? 260 : 480, borderRadius: '50%', background: 'radial-gradient(circle, #FFF8E1 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '10%', left: isMobile ? '-20%' : '-5%', width: isMobile ? 220 : 360, height: isMobile ? 220 : 360, borderRadius: '50%', background: 'radial-gradient(circle, #FFF0EF 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '5%', right: isMobile ? '-25%' : '5%', width: isMobile ? 260 : 480, height: isMobile ? 260 : 480, borderRadius: '50%', background: 'radial-gradient(circle, #FFF8E1 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ position: 'absolute', bottom: '10%', left: isMobile ? '-20%' : '-5%', width: isMobile ? 220 : 360, height: isMobile ? 220 : 360, borderRadius: '50%', background: 'radial-gradient(circle, #FFF0EF 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
         {/* Floating craft doodles */}
         {(isMobile
@@ -319,12 +319,12 @@ export default function HomePage() {
               { emoji: '🎨', bottom: '28%', left: '3%', cls: 'float-delay2' },
               { emoji: '📌', top: '60%', right: '3%', cls: 'float-delay3' },
             ]).map((b, i) => (
-          <div key={i} className={b.cls} style={{ position: 'absolute', top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: isMobile ? 38 : 52, height: isMobile ? 38 : 52, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 18 : 22, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)', opacity: isMobile ? 0.92 : 1, pointerEvents: 'none' }}>
+          <div key={i} className={b.cls} style={{ position: 'absolute', top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: isMobile ? 38 : 52, height: isMobile ? 38 : 52, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 18 : 22, boxShadow: 'var(--shadow-sm)', border: '2px solid var(--border)', opacity: isMobile ? 0.92 : 1, pointerEvents: 'none', zIndex: 0 }}>
             {b.emoji}
           </div>
         ))}
 
-        <div style={{ maxWidth: 760, margin: '0 auto', width: '100%', textAlign: 'center' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', width: '100%', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: isMobile ? 8 : 14, marginBottom: isMobile ? 18 : 24, paddingTop: isMobile ? 8 : 12 }}>
             {[
               { src: '/hero-1.png', rotate: -10, z: 2, offset: isMobile ? 10 : 14, w: isMobile ? 96 : 132 },
