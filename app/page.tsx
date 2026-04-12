@@ -110,7 +110,6 @@ function EmailCapture({ onSuccess, isCompact = false }: { onSuccess?: (email: st
       <div style={{ display: 'flex', flexDirection: isCompact ? 'column' : 'row', gap: 10, background: isCompact ? '#FFFFFF' : 'white', borderRadius: isCompact ? 'var(--r-xl)' : 'var(--r-full)', padding: isCompact ? '16px' : '6px 10px', boxShadow: isCompact ? '0 10px 24px rgba(26,18,8,0.08)' : 'var(--shadow-md)', border: '2px solid var(--border)', alignItems: isCompact ? 'stretch' : 'center' }}>
         {isCompact ? (
           <div style={{ display: 'grid', gap: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.5, color: '#BF8C00', textTransform: 'uppercase' }}>Get your free sample</div>
             <label style={{ display: 'grid', gap: 8, textAlign: 'left', fontSize: 14, fontWeight: 800, color: 'var(--body)' }}>
               Email address
               <input type="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setError('') }}
@@ -369,9 +368,6 @@ export default function HomePage() {
           <div style={{ marginBottom: 20, maxWidth: 500, marginInline: 'auto' }}>
             <EmailCapture isCompact={isMobile} />
           </div>
-          <p style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>
-            Start your first Kiddle adventure — no planning needed
-          </p>
         </div>
       </section>
 
