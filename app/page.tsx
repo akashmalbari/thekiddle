@@ -352,7 +352,7 @@ export default function HomePage() {
               />
             ))}
           </div>
-          <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–4 · Screen-Free</Tag></div>
+          <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–5 · Screen-Free</Tag></div>
           <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
             Let's Make Learning & Playing{' '}
             <span style={{ color: '#FFD166', position: 'relative', display: 'inline-block' }}>
@@ -384,7 +384,7 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 24 }}>
             {[
               { emoji: '🎨', title: 'Creative Activities', desc: 'Hands-on arts, crafts, and creative projects that spark imagination and develop fine motor skills.', color: '#FFD166', pale: '#FFF8E1' },
-              { emoji: '📚', title: 'Educational Fun', desc: 'Learning through play with activities designed by early childhood educators for ages 3–4.', color: '#FFAAA5', pale: '#FFF0EF' },
+              { emoji: '📚', title: 'Educational Fun', desc: 'Learning through play with activities designed by early childhood educators for ages 3–5.', color: '#FFAAA5', pale: '#FFF0EF' },
               { emoji: '🏃', title: 'Active Play', desc: 'Movement-based games and activities that get kids moving, grooving, and developing gross motor skills.', color: '#6ECDC8', pale: '#E6FAF9' },
               { emoji: '✂️', title: 'Simple to Set Up', desc: 'Every activity uses materials you already have at home. No shopping trips required.', color: '#FFD166', pale: '#FFF8E1' },
               { emoji: '🧠', title: 'Expert Designed', desc: 'Activities are crafted by early childhood specialists who know exactly what kids this age need.', color: '#FFAAA5', pale: '#FFF0EF' },
@@ -403,7 +403,7 @@ export default function HomePage() {
           </div>
           {/* Stats bar */}
           <div style={{ marginTop: 48, display: 'flex', justifyContent: 'center', gap: 40, flexWrap: 'wrap' }}>
-            {[['12+','Activities/Month'],['100%','Screen-Free'],['Expert','Designed'],['Ages','3–4 Years']].map(([val, lbl], i) => (
+            {[['12+','Activities/Month'],['100%','Screen-Free'],['Expert','Designed'],['Ages','3–5 Years']].map(([val, lbl], i) => (
               <div key={i} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 28, fontWeight: 800, color: '#FFD166', fontFamily: "'Baloo 2',cursive" }}>{val}</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted)' }}>{lbl}</div>
