@@ -517,7 +517,7 @@ export default function HomePage() {
             <div style={{ textAlign: 'left', marginBottom: 56 }}>
                 <Tag color="teal">What Parents Say</Tag>
                 <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>The Monday they actually look forward to</h2>
-                <p style={{ fontSize: isMobile ? 20 : 22, color: 'var(--body)', lineHeight: 1.5, fontWeight: 600, maxWidth: 600 }}>
+                <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600, whiteSpace: isMobile ? 'normal' : 'nowrap' }}>
               Parents tell us the experiment page alone is worth the subscription.
             </p>
           </div>
