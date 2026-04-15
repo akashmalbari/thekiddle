@@ -352,8 +352,8 @@ export default function HomePage() {
               />
             ))}
           </div>
-          <div style={{ marginBottom: 24 }}><Tag color="pink">New workbook every Monday · Ages 3–5</Tag></div>
-          <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
+          <div style={{ marginBottom: 24 }}><Tag color="pink">New edition every Monday · Ages 3–5</Tag></div>
+          <h1 style={{ fontSize: isMobile ? 30 : isTablet ? 38 : 48, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
             One magical hour. Zero planning. <br/>{' '}
             <span style={{ color: '#FFD166', position: 'relative', display: 'inline-block' }}>
               6+ activities
