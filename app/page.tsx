@@ -539,7 +539,7 @@ export default function HomePage() {
             ].map((t, i) => (
               <div key={i} style={{ background: '#F4F5F7', border: '2px solid #DFE2E8', borderRadius: 28, padding: isMobile ? '20px 16px' : '26px 28px', minHeight: isMobile ? 'auto' : 300, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ color: '#E3B630', fontSize: 32, lineHeight: 1, letterSpacing: 1, marginBottom: 20 }}>★★★★★</div>
-                <p style={{ fontSize: isMobile ? 35/2 : 19, lineHeight: 1.7, color: '#1C1712', fontWeight: 700, fontStyle: 'italic', marginBottom: 28, flex: 1, fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                <p style={{ fontSize: isMobile ? 15 : 17, lineHeight: 1.7, color: '#1C1712', fontWeight: 700, fontStyle: 'italic', marginBottom: 28, flex: 1, fontFamily: "Georgia, 'Times New Roman', serif" }}>
                   {t.quote}
                 </p>
                 <p style={{ fontSize: isMobile ? 23/2 : 16, color: '#7A7670', fontWeight: 700 }}>{t.author}</p>
