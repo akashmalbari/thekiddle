@@ -514,9 +514,9 @@ export default function HomePage() {
       {/* ══ TESTIMONIALS ═══════════════════════════════════ */}
       <section id="features" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+            <div style={{ textAlign: 'left', marginBottom: 56 }}>
                 <Tag color="teal">What Parents Say</Tag>
-                <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>The Monday they actually look forward to.n</h2>
+                <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>The Monday they actually look forward to</h2>
                 <p style={{ fontSize: isMobile ? 20 : 22, color: 'var(--body)', lineHeight: 1.5, fontWeight: 600, maxWidth: 560 }}>
               Parents tell us the experiment page alone is worth the subscription.
             </p>
@@ -537,7 +537,7 @@ export default function HomePage() {
                 author: 'Aisha K. · Mum of two, ages 3 & 5',
               },
             ].map((t, i) => (
-              <div key={i} style={{ background: '#F4F5F7', border: '2px solid #DFE2E8', borderRadius: 28, padding: isMobile ? '24px 20px' : '30px 32px', minHeight: isMobile ? 'auto' : 310, display: 'flex', flexDirection: 'column' }}>
+              <div key={i} style={{ background: '#F4F5F7', border: '2px solid #DFE2E8', borderRadius: 28, padding: isMobile ? '20px 16px' : '26px 28px', minHeight: isMobile ? 'auto' : 300, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ color: '#E3B630', fontSize: 32, lineHeight: 1, letterSpacing: 1, marginBottom: 20 }}>★★★★★</div>
                 <p style={{ fontSize: isMobile ? 35/2 : 19, lineHeight: 1.7, color: '#1C1712', fontWeight: 700, fontStyle: 'italic', marginBottom: 28, flex: 1, fontFamily: "Georgia, 'Times New Roman', serif" }}>
                   {t.quote}
