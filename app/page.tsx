@@ -352,18 +352,18 @@ export default function HomePage() {
               />
             ))}
           </div>
-          <div style={{ marginBottom: 24 }}><Tag color="pink">Ages 3–5 · Screen-Free</Tag></div>
+          <div style={{ marginBottom: 24 }}><Tag color="pink">New workbook every Monday · Ages 3–5</Tag></div>
           <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
-            Let's Make Learning & Playing{' '}
+            One magical hour. Zero planning,{' '}
             <span style={{ color: '#FFD166', position: 'relative', display: 'inline-block' }}>
-              Fun Without Screens
+              7 activities
               <svg style={{ position: 'absolute', bottom: -4, left: 0, width: '100%' }} viewBox="0 0 300 10" preserveAspectRatio="none">
                 <path d="M0,7 Q75,0 150,7 Q225,14 300,7" stroke="#FFAAA5" strokeWidth="3" fill="none" strokeLinecap="round"/>
               </svg>
             </span>
           </h1>
           <p style={{ fontSize: isMobile ? 16 : 18, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600, maxWidth: 540, marginInline: 'auto' }}>
-            Kiddle is a weekly, print-ready workbook — thoughtfully curated so you don't have to think twice. Quality time with your child shouldn't require hours of planning. Just open, print, and watch them light up — every single week.
+            Kiddle is a weekly print-and-play workbook packed with activities most kids have never seen together — science, phonics, storytelling, movement, and more. Busy parents, this one's for you.
           </p>
           <div style={{ marginBottom: 20, maxWidth: 500, marginInline: 'auto' }}>
             <EmailCapture isCompact={isMobile} />
@@ -383,11 +383,11 @@ export default function HomePage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 24 }}>
             {[
-              { emoji: '🎨', title: 'Creative Activities', desc: 'Hands-on arts, crafts, and creative projects that spark imagination and develop fine motor skills.', color: '#FFD166', pale: '#FFF8E1' },
-              { emoji: '📚', title: 'Educational Fun', desc: 'Learning through play with activities designed by early childhood educators for ages 3–5.', color: '#FFAAA5', pale: '#FFF0EF' },
-              { emoji: '🏃', title: 'Active Play', desc: 'Movement-based games and activities that get kids moving, grooving, and developing gross motor skills.', color: '#6ECDC8', pale: '#E6FAF9' },
-              { emoji: '✂️', title: 'Simple to Set Up', desc: 'Every activity uses materials you already have at home. No shopping trips required.', color: '#FFD166', pale: '#FFF8E1' },
-              { emoji: '🧠', title: 'Expert Designed', desc: 'Activities are crafted by early childhood specialists who know exactly what kids this age need.', color: '#FFAAA5', pale: '#FFF0EF' },
+              { emoji: '🧠🎨', title: 'Age appropriate science experiment', desc: 'A hands-on experiment your child does using everyday items—exploring surface tension, color mixing, and cause-and-effect. Watch their excitement when it works.', color: '#FFD166', pale: '#FFF8E1' },
+              { emoji: '📚', title: 'Unique Learning Activities', desc: 'A fresh mix of activities your child won’t find in typical workbooks—phonics play, cut-and-build creations, and story-building exercises that spark creativity, hands-on thinking, and deeper learning.', color: '#FFAAA5', pale: '#FFF0EF' },
+              { emoji: '🏃', title: 'Active Play', desc: 'Body break activity tied to the week's theme — stomping like elephants, jumping like frogs. Gross motor skills, energy release, and giggles. Because kids this age learn through their whole body.', color: '#6ECDC8', pale: '#E6FAF9' },
+              { emoji: '✂️', title: 'Logic & Reasoning', desc: 'Riddles and pattern games designed for little thinkers. Not too easy, not frustrating. ', color: '#FFD166', pale: '#FFF8E1' },
+              { emoji: '🧠', title: 'Creative Expression', desc: 'Themed coloring that builds fine motor skills—while your child creates, not just colors.', color: '#FFAAA5', pale: '#FFF0EF' },
               { emoji: '📮', title: 'Weekly Delivery', desc: 'Fresh activities arrive in your inbox every week — always new, always exciting, always offline.', color: '#6ECDC8', pale: '#E6FAF9' },
             ].map((f, i) => (
               <div key={i} style={{ background: f.pale, borderRadius: 22, padding: '28px', border: `2px solid ${f.color}30`, transition: 'transform 0.22s, box-shadow 0.22s' }}
