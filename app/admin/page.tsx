@@ -103,6 +103,7 @@ export default function AdminPage() {
   const [uploadingPdf, setUploadingPdf] = useState(false)
   const [savingNewsletter, setSavingNewsletter] = useState(false)
   const [sendingNewsletters, setSendingNewsletters] = useState(false)
+  const [sendingTestEmails, setSendingTestEmails] = useState(false)
 
   const handleLogin = async () => {
     setLoginLoading(true); setLoginErr('')
@@ -195,6 +196,23 @@ export default function AdminPage() {
       setNewsletterMsg(`⚠️ ${e.message}`)
     } finally {
       setSendingNewsletters(false)
+    }
+  }
+
+  const sendTestEmails = async () => {
+    setNewsletterMsg('')
+    setSendingTestEmails(true)
+
+    try {
+      const res = await authFetch('/api/admin/send-test-emails', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to send test emails')
+
+      setNewsletterMsg(`✅ ${data.sent_count || 0} test emails sent to ${data.recipient_count || 0} recipients, ${data.failed_count || 0} failed`)
+    } catch (e: any) {
+      setNewsletterMsg(`⚠️ ${e.message}`)
+    } finally {
+      setSendingTestEmails(false)
     }
   }
 
@@ -509,13 +527,20 @@ export default function AdminPage() {
               </div>
             )}
 
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button
                 onClick={sendNewsletters}
-                disabled={sendingNewsletters}
-                style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: sendingNewsletters ? 'wait' : 'pointer' }}
+                disabled={sendingNewsletters || sendingTestEmails}
+                style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: sendingNewsletters ? 'wait' : sendingTestEmails ? 'not-allowed' : 'pointer', opacity: sendingTestEmails ? 0.7 : 1 }}
               >
                 {sendingNewsletters ? 'Sending Newsletters...' : 'Send Newsletters'}
+              </button>
+              <button
+                onClick={sendTestEmails}
+                disabled={sendingTestEmails || sendingNewsletters}
+                style={{ padding: '10px 16px', borderRadius: 10, border: '2px solid #FFD166', background: 'white', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: sendingTestEmails ? 'wait' : sendingNewsletters ? 'not-allowed' : 'pointer', opacity: sendingNewsletters ? 0.7 : 1 }}
+              >
+                {sendingTestEmails ? 'Sending Test Emails...' : 'Test Email'}
               </button>
             </div>
 
