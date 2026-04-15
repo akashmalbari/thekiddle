@@ -511,6 +511,48 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ══ TESTIMONIALS ═══════════════════════════════════ */}
+      <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'var(--cream)' }}>
+        <div style={{ maxWidth: 1220, margin: '0 auto' }}>
+          <div style={{ maxWidth: 820, marginBottom: isMobile ? 36 : 48 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.8, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 14 }}>
+              What Parents Say
+            </div>
+            <h2 style={{ fontSize: isMobile ? 34 : isTablet ? 52 : 66, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.1, marginBottom: 18 }}>
+              The Monday they actually look forward to.
+            </h2>
+            <p style={{ fontSize: isMobile ? 20 : 22, color: 'var(--body)', lineHeight: 1.5, fontWeight: 600, maxWidth: 560 }}>
+              Parents tell us the experiment page alone is worth the subscription.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr' : 'repeat(3, 1fr)', gap: 18 }}>
+            {[
+              {
+                quote: '“My daughter asked me on Sunday night if her \"new book\" had arrived yet. That\'s never happened with any other activity.”',
+                author: 'Priya M. · Mum of a 4-year-old',
+              },
+              {
+                quote: '“The pepper experiment blew my son\'s mind. He made his grandfather do it three times. Worth every penny.”',
+                author: 'James T. · Dad of a 5-year-old',
+              },
+              {
+                quote: '“As a working mum I have zero time to plan activities. This is genuinely the only thing that gives me a guilt-free hour on weekends.”',
+                author: 'Aisha K. · Mum of two, ages 3 & 5',
+              },
+            ].map((t, i) => (
+              <div key={i} style={{ background: '#F4F5F7', border: '2px solid #DFE2E8', borderRadius: 28, padding: isMobile ? '24px 20px' : '30px 32px', minHeight: isMobile ? 'auto' : 310, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ color: '#E3B630', fontSize: 32, lineHeight: 1, letterSpacing: 1, marginBottom: 20 }}>★★★★★</div>
+                <p style={{ fontSize: isMobile ? 35/2 : 19, lineHeight: 1.7, color: '#1C1712', fontWeight: 700, fontStyle: 'italic', marginBottom: 28, flex: 1, fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                  {t.quote}
+                </p>
+                <p style={{ fontSize: isMobile ? 23/2 : 16, color: '#7A7670', fontWeight: 700 }}>{t.author}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ══ WHY WE STARTED KIDDLE ═════════════════════════ */}
       <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr' : '1.05fr 1fr', gap: isMobile ? 28 : 40, alignItems: 'center' }}>
