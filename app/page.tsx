@@ -354,9 +354,9 @@ export default function HomePage() {
           </div>
           <div style={{ marginBottom: 24 }}><Tag color="pink">New workbook every Monday · Ages 3–5</Tag></div>
           <h1 style={{ fontSize: isMobile ? 36 : isTablet ? 44 : 54, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.12, marginBottom: 22 }}>
-            One magical hour. <br/> Zero planning. <br/>{' '}
+            One magical hour. Zero planning. <br/>{' '}
             <span style={{ color: '#FFD166', position: 'relative', display: 'inline-block' }}>
-              7 activities
+              6+ activities
               <svg style={{ position: 'absolute', bottom: -4, left: 0, width: '100%' }} viewBox="0 0 300 10" preserveAspectRatio="none">
                 <path d="M0,7 Q75,0 150,7 Q225,14 300,7" stroke="#FFAAA5" strokeWidth="3" fill="none" strokeLinecap="round"/>
               </svg>
