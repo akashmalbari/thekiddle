@@ -512,12 +512,12 @@ export default function HomePage() {
       </section>
 
       {/* ══ TESTIMONIALS ═══════════════════════════════════ */}
-      <section id="features" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
+      <section id="testimonials" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
             <div style={{ textAlign: 'left', marginBottom: 56 }}>
                 <Tag color="teal">What Parents Say</Tag>
                 <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>The Monday they actually look forward to</h2>
-                <p style={{ fontSize: isMobile ? 20 : 22, color: 'var(--body)', lineHeight: 1.5, fontWeight: 600, maxWidth: 560 }}>
+                <p style={{ fontSize: isMobile ? 20 : 22, color: 'var(--body)', lineHeight: 1.5, fontWeight: 600, maxWidth: 600 }}>
               Parents tell us the experiment page alone is worth the subscription.
             </p>
           </div>
@@ -550,7 +550,7 @@ export default function HomePage() {
       </section>
 
       {/* ══ WHY WE STARTED KIDDLE ═════════════════════════ */}
-      <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white' }}>
+      <section style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'var(--cream-warm)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr' : '1.05fr 1fr', gap: isMobile ? 28 : 40, alignItems: 'center' }}>
           <div>
             <div style={{ textAlign: 'center' }}>
