@@ -279,7 +279,7 @@ export default function HomePage() {
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#FFD166'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--body)'}
           >
-            Blog
+            Blogs
           </Link>
         </div>}
         {isMobile ? (
