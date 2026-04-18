@@ -638,7 +638,7 @@ export default function HomePage() {
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'white'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'}>{l.label}</button>
               ))}
-              <Link href="/blog" style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Blog</Link>
+              <Link href="/blog" style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Blogs</Link>
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#FFD166', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 16 }}>Support</div>
