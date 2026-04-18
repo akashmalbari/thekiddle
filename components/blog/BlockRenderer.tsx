@@ -9,13 +9,8 @@ function BlockParagraph({ content }: { content: string }) {
   return <p style={{ fontSize: 18, lineHeight: 1.85, color: 'var(--body)', fontWeight: 600 }}>{content}</p>
 }
 
-function BlockImage({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
-  return (
-    <figure style={{ margin: '24px 0' }}>
-      <img src={src} alt={alt} style={{ width: '100%', borderRadius: 18, border: '2px solid var(--border)' }} />
-      {caption && <figcaption style={{ marginTop: 8, color: 'var(--muted)', fontSize: 14, fontWeight: 600 }}>{caption}</figcaption>}
-    </figure>
-  )
+function BlockImage() {
+  return null
 }
 
 function BlockList({ items, ordered }: { items: string[]; ordered?: boolean }) {
@@ -60,7 +55,7 @@ export function BlockRenderer({ blocks }: { blocks: BlogBlock[] }) {
           case 'paragraph':
             return <BlockParagraph key={index} content={block.content} />
           case 'image':
-            return <BlockImage key={index} src={block.src} alt={block.alt} caption={block.caption} />
+            return <BlockImage key={index} />
           case 'list':
             return <BlockList key={index} items={block.items} ordered={block.ordered} />
           case 'callout':

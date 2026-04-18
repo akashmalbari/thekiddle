@@ -22,15 +22,7 @@ export function BlogCard({ post }: { post: BlogPost }) {
         flexDirection: 'column',
       }}
     >
-      <Link href={`/blog/${post.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-        <img
-          src={post.heroImage}
-          alt={post.heroImageAlt}
-          style={{ width: '100%', height: 200, objectFit: 'cover', borderBottom: '2px solid var(--border)' }}
-        />
-      </Link>
-
-      <div style={{ padding: 18 }}>
+      <div style={{ padding: 22 }}>
         <div style={{ marginBottom: 8 }}>
           <span
             style={{
@@ -47,12 +39,12 @@ export function BlogCard({ post }: { post: BlogPost }) {
             {post.category}
           </span>
         </div>
-        <h2 style={{ fontSize: 28, lineHeight: 1.2, marginBottom: 10 }}>
+        <h2 style={{ fontSize: 30, lineHeight: 1.2, marginBottom: 10 }}>
           <Link href={`/blog/${post.slug}`} style={{ color: 'var(--dark)', textDecoration: 'none' }}>
             {post.title}
           </Link>
         </h2>
-        <p style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--body)', fontWeight: 600, marginBottom: 14 }}>{post.excerpt}</p>
+        <p style={{ fontSize: 16, lineHeight: 1.7, color: 'var(--body)', fontWeight: 600, marginBottom: 14 }}>{post.excerpt}</p>
         <p style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 700 }}>{formatDate(post.date)}</p>
       </div>
     </article>

@@ -45,14 +45,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: post.seoDescription,
       type: 'article',
       url: `https://thekiddle.com/blog/${post.slug}`,
-      images: [{ url: post.heroImage, alt: post.heroImageAlt }],
       publishedTime: post.date,
     },
     twitter: {
-      card: 'summary_large_image',
+      card: 'summary',
       title: post.title,
       description: post.seoDescription,
-      images: [post.heroImage],
     },
   }
 }
@@ -74,7 +72,6 @@ export default async function BlogPostPage({ params }: Props) {
     description: post.seoDescription,
     datePublished: post.date,
     dateModified: post.date,
-    image: `https://thekiddle.com${post.heroImage}`,
     mainEntityOfPage: `https://thekiddle.com/blog/${post.slug}`,
     author: {
       '@type': 'Organization',
@@ -116,12 +113,6 @@ export default async function BlogPostPage({ params }: Props) {
             <h1 style={{ fontSize: 48, lineHeight: 1.12, marginBottom: 8 }}>{post.title}</h1>
             <p style={{ color: 'var(--muted)', fontSize: 14, fontWeight: 700 }}>{formatDate(post.date)}</p>
           </header>
-
-          <img
-            src={post.heroImage}
-            alt={post.heroImageAlt}
-            style={{ width: '100%', borderRadius: 22, border: '2px solid var(--border)', marginBottom: 24 }}
-          />
 
           <BlockRenderer blocks={post.blocks} />
         </article>
