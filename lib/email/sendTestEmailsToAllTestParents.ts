@@ -58,12 +58,12 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
         <a href="https://www.instagram.com/thekiddle_/" target="_blank" style="text-decoration:none;">
           <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
                alt="Instagram"
-               style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">
-          @thekiddle_
+               style="width:16px; height:16px; vertical-align:middle; margin-right:0; border:0; display:inline-block;"><span style="vertical-align:middle;">@thekiddle_</span>
         </a>
         on Instagram! This is exactly what we build at
-        <a href="https://www.thekiddle.com/">The Kiddle</a> —
-        <b>stories + activities + imagination in one weekly experience.</b>
+        <a href="https://www.thekiddle.com/" style="text-decoration:none;">
+          The Kiddle
+        </a>stories + activities + imagination in one weekly experience.
       </p>
       <p><b>Happy Earth Day</b> 🌍</p>
       <p>Warmly,<br/>The Kiddle Team</p>
