@@ -46,14 +46,25 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
   const html = `
     <div style="font-family: Arial, sans-serif; line-height:1.75; color:#222;">
       <p>Hi Kiddler Parent,</p>
-      <p>This Earth Day, let’s try something a little different with your child. Tell them they got a message from planet Earth!</p>
+      <p>This Earth Day, let’s try something different with your child. Tell them they got a message from planet Earth!</p>
       <p>
         <a href="${sampleNewsletterUrl}" target="_blank" rel="noopener noreferrer"
            style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">
            MESSAGE FROM EARTH
         </a>
       </p>
-      <p>If your child enjoyed this little moment, take a photo and tag @thekiddle_ on instagram! This is exactly what we build at <a href="https://www.thekiddle.com/">The Kiddle</a> — <b>stories + activities + imagination in one weekly experience.</b></p>
+      <p>
+        If your child enjoyed this little moment, take a photo and tag
+        <a href="https://www.instagram.com/thekiddle_/" target="_blank" style="text-decoration:none;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
+               alt="Instagram"
+               style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">
+          @thekiddle_
+        </a>
+        on Instagram! This is exactly what we build at
+        <a href="https://www.thekiddle.com/">The Kiddle</a> —
+        <b>stories + activities + imagination in one weekly experience.</b>
+      </p>
       <p><b>Happy Earth Day</b> 🌍</p>
       <p>Warmly,<br/>The Kiddle Team</p>
       <hr style="margin:24px 0;border:none;border-top:1px solid #eee;" />
