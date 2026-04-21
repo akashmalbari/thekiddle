@@ -23,7 +23,7 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
   }
 
   const appBaseUrl = resolveAppBaseUrl().replace(/\/$/, '')
-  const sampleNewsletterUrl = `${appBaseUrl}/sample-newsletter`
+  const sampleNewsletterUrl = `${appBaseUrl}/sample-newsletter-test`
   const unsubscribeUrl = `${appBaseUrl}/unsubscribe`
 
   const supabaseAdmin = getSupabaseAdmin()
@@ -45,15 +45,16 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
 
   const html = `
     <div style="font-family: Arial, sans-serif; line-height:1.75; color:#222;">
-      <p>Hello,</p>
-      <p>Thanks for requesting a sample Kiddle.</p>
-      <p>Here is your free sample edition:</p>
+      <p>Hi Kiddler Parent,</p>
+      <p>This Earth Day, let’s try something a little different with your child. Tell them they got a message from planet Earth!</p>
       <p>
         <a href="${sampleNewsletterUrl}" target="_blank" rel="noopener noreferrer"
            style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">
-           Open Sample Newsletter
+           MESSAGE FROM EARTH
         </a>
       </p>
+      <p>If your child enjoyed this little moment, take a photo and tag @thekiddle_ on instagram! This is exactly what we build at <a href="https://www.thekiddle.com/">The Kiddle</a> — <b>stories + activities + imagination in one weekly experience.</b></p>
+      <p><b>Happy Earth Day</b> 🌍</p>
       <p>Warmly,<br/>The Kiddle Team</p>
       <hr style="margin:24px 0;border:none;border-top:1px solid #eee;" />
       <p style="font-size:12px;color:#6b7280;">
@@ -76,7 +77,7 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
         body: JSON.stringify({
           from: fromEmail,
           to: [recipientEmail],
-          subject: 'The Kiddle Test Email',
+          subject: 'We received a message… from Earth 🌍',
           html,
         }),
       })
