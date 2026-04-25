@@ -78,6 +78,9 @@ export default function AdminPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [potentialSubscriberCount, setPotentialSubscriberCount] = useState(0)
   const [attemptedPaymentsCount, setAttemptedPaymentsCount] = useState(0)
+  const [selectedMetricDetail, setSelectedMetricDetail] = useState<'potentialSubscribers' | 'attemptedPayments' | null>(null)
+  const [metricDetailEmails, setMetricDetailEmails] = useState<string[]>([])
+  const [metricDetailLoading, setMetricDetailLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
   const [search, setSearch] = useState('')
   const [newsletters, setNewsletters] = useState<NewsletterRecord[]>([])
@@ -149,6 +152,42 @@ export default function AdminPage() {
       .eq('parents.subscriber_state', 'potential')
 
     setAttemptedPaymentsCount(count || 0)
+  }
+
+  const loadPotentialSubscriberEmails = async () => {
+    setMetricDetailLoading(true)
+    setSelectedMetricDetail('potentialSubscribers')
+
+    const { data } = await supabase
+      .from('parents')
+      .select('email, created_at')
+      .eq('subscriber_state', 'potential')
+      .order('created_at', { ascending: false })
+
+    const emails = (data || []).map((row: any) => row.email).filter(Boolean)
+    setMetricDetailEmails(emails)
+    setMetricDetailLoading(false)
+  }
+
+  const loadAttemptedPaymentEmails = async () => {
+    setMetricDetailLoading(true)
+    setSelectedMetricDetail('attemptedPayments')
+
+    const { data } = await supabase
+      .from('children')
+      .select('id, parents!inner(email)')
+      .eq('parents.subscriber_state', 'potential')
+
+    const emails = (data || [])
+      .map((row: any) => {
+        const parent = row.parents
+        if (Array.isArray(parent)) return parent[0]?.email
+        return parent?.email
+      })
+      .filter(Boolean)
+
+    setMetricDetailEmails(emails)
+    setMetricDetailLoading(false)
   }
 
   const loadPricing = async () => {
@@ -477,14 +516,44 @@ export default function AdminPage() {
 
       <div style={{ flex: 1, padding: '28px 40px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
           {[
-            { label: 'Potential Subscribers', value: potentialSubscriberCount, emoji: '📧', color: '#FFD166' },
+            {
+              label: 'Potential Subscribers',
+              value: potentialSubscriberCount,
+              emoji: '📧',
+              color: '#FFD166',
+              onClick: loadPotentialSubscriberEmails,
+              selected: selectedMetricDetail === 'potentialSubscribers',
+            },
             { label: 'Active Children Registered', value: totalKids, emoji: '🧒', color: '#FFAAA5' },
             { label: 'Joined This Week', value: thisWeek, emoji: '📈', color: '#6ECDC8' },
-            { label: 'Attempted Payments', value: attemptedPaymentsCount, emoji: '💳', color: '#C7CEEA' },
+            {
+              label: 'Attempted Payments',
+              value: attemptedPaymentsCount,
+              emoji: '💳',
+              color: '#C7CEEA',
+              onClick: loadAttemptedPaymentEmails,
+              selected: selectedMetricDetail === 'attemptedPayments',
+            },
           ].map((s, i) => (
-            <div key={i} style={{ background: 'white', borderRadius: 18, padding: '18px 22px', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div
+              key={i}
+              onClick={s.onClick}
+              style={{
+                background: 'white',
+                borderRadius: 18,
+                padding: '18px 22px',
+                border: `2px solid ${s.selected ? '#FFD166' : 'var(--border)'}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                cursor: s.onClick ? 'pointer' : 'default',
+                boxShadow: s.selected ? 'var(--shadow-yellow)' : 'none',
+                transition: 'all 0.2s',
+              }}
+              title={s.onClick ? 'Click to view emails' : undefined}
+            >
               <div style={{ width: 46, height: 46, borderRadius: 14, background: s.color + '28', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{s.emoji}</div>
               <div>
                 <div style={{ fontFamily: "'Baloo 2',cursive", fontSize: 26, fontWeight: 800, color: 'var(--dark)', lineHeight: 1 }}>{s.value}</div>
@@ -493,6 +562,36 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
+
+        {selectedMetricDetail && (
+          <div style={{ background: 'white', borderRadius: 16, border: '2px solid var(--border)', padding: 16, marginBottom: 22 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                {selectedMetricDetail === 'potentialSubscribers' ? 'Potential Subscribers Emails' : 'Attempted Payments Emails'}
+              </div>
+              <button
+                onClick={() => { setSelectedMetricDetail(null); setMetricDetailEmails([]) }}
+                style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'white', color: 'var(--muted)', fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+            </div>
+
+            {metricDetailLoading ? (
+              <div style={{ color: 'var(--muted)', fontSize: 14, fontWeight: 700 }}>Loading emails...</div>
+            ) : metricDetailEmails.length === 0 ? (
+              <div style={{ color: 'var(--muted)', fontSize: 14, fontWeight: 700 }}>No emails found.</div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+                {metricDetailEmails.map((email, idx) => (
+                  <div key={`${email}-${idx}`} style={{ padding: '8px 10px', borderRadius: 10, background: 'var(--cream)', border: '1px solid var(--border)', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
+                    {email}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'white', borderRadius: 14, padding: 4, border: '2px solid var(--border)', width: 'fit-content', marginBottom: 22 }}>
