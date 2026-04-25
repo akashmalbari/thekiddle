@@ -76,6 +76,8 @@ export default function AdminPage() {
   const [loginLoading, setLoginLoading] = useState(false)
   const [tab, setTab] = useState<'subscribers' | 'newsletters' | 'pricing' | 'contacts'>('subscribers')
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
+  const [potentialSubscriberCount, setPotentialSubscriberCount] = useState(0)
+  const [attemptedPaymentsCount, setAttemptedPaymentsCount] = useState(0)
   const [loadingData, setLoadingData] = useState(false)
   const [search, setSearch] = useState('')
   const [newsletters, setNewsletters] = useState<NewsletterRecord[]>([])
@@ -118,13 +120,35 @@ export default function AdminPage() {
 
   const loadSubscribers = async () => {
     setLoadingData(true)
-    const { data: parents } = await supabase.from('parents').select('id, name, email, subscriber_state, created_at').order('created_at', { ascending: false })
+    const { data: parents } = await supabase
+      .from('parents')
+      .select('id, name, email, subscriber_state, created_at')
+      .eq('subscriber_state', 'active')
+      .order('created_at', { ascending: false })
     if (!parents) { setLoadingData(false); return }
     const enriched: Subscriber[] = await Promise.all(parents.map(async p => {
       const { data: kids } = await supabase.from('children').select('age_value').eq('parent_id', p.id)
       return { ...p, children: kids || [] }
     }))
     setSubscribers(enriched); setLoadingData(false)
+  }
+
+  const loadPotentialSubscriberCount = async () => {
+    const { count } = await supabase
+      .from('parents')
+      .select('id', { count: 'exact', head: true })
+      .eq('subscriber_state', 'potential')
+
+    setPotentialSubscriberCount(count || 0)
+  }
+
+  const loadAttemptedPaymentsCount = async () => {
+    const { count } = await supabase
+      .from('children')
+      .select('id, parents!inner(id)', { count: 'exact', head: true })
+      .eq('parents.subscriber_state', 'potential')
+
+    setAttemptedPaymentsCount(count || 0)
   }
 
   const loadPricing = async () => {
@@ -386,6 +410,8 @@ export default function AdminPage() {
   useEffect(() => {
     if (authed) {
       loadSubscribers()
+      loadPotentialSubscriberCount()
+      loadAttemptedPaymentsCount()
       loadPricing()
       loadContactQueries()
       loadNewsletters()
@@ -451,12 +477,12 @@ export default function AdminPage() {
 
       <div style={{ flex: 1, padding: '28px 40px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 28 }}>
           {[
-            { label: 'Total Subscribers', value: subscribers.length, emoji: '📧', color: '#FFD166' },
-            { label: 'Children Registered', value: totalKids, emoji: '🧒', color: '#FFAAA5' },
+            { label: 'Potential Subscribers', value: potentialSubscriberCount, emoji: '📧', color: '#FFD166' },
+            { label: 'Active Children Registered', value: totalKids, emoji: '🧒', color: '#FFAAA5' },
             { label: 'Joined This Week', value: thisWeek, emoji: '📈', color: '#6ECDC8' },
-            { label: 'Newsletters Sent', value: newsletters.filter(n => n.status === 'sent').length, emoji: '📮', color: '#FFD166' },
+            { label: 'Attempted Payments', value: attemptedPaymentsCount, emoji: '💳', color: '#C7CEEA' },
           ].map((s, i) => (
             <div key={i} style={{ background: 'white', borderRadius: 18, padding: '18px 22px', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ width: 46, height: 46, borderRadius: 14, background: s.color + '28', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{s.emoji}</div>
