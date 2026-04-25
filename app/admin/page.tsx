@@ -522,9 +522,9 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <div style={{ flex: 1, padding: '28px 40px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+      <div style={{ flex: 1, padding: '28px 16px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 28 }}>
           {[
             {
               label: 'Potential Subscribers',
@@ -590,7 +590,7 @@ export default function AdminPage() {
             ) : metricDetailRows.length === 0 ? (
               <div style={{ color: 'var(--muted)', fontSize: 14, fontWeight: 700 }}>No emails found.</div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {metricDetailRows.map((row, idx) => (
                   <div key={`${row.email}-${row.date || 'na'}-${idx}`} style={{ padding: '8px 10px', borderRadius: 10, background: 'var(--cream)', border: '1px solid var(--border)', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
                     <div>{row.email}</div>
