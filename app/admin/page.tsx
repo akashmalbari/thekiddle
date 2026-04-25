@@ -79,7 +79,7 @@ export default function AdminPage() {
   const [potentialSubscriberCount, setPotentialSubscriberCount] = useState(0)
   const [attemptedPaymentsCount, setAttemptedPaymentsCount] = useState(0)
   const [selectedMetricDetail, setSelectedMetricDetail] = useState<'potentialSubscribers' | 'attemptedPayments' | null>(null)
-  const [metricDetailEmails, setMetricDetailEmails] = useState<string[]>([])
+  const [metricDetailRows, setMetricDetailRows] = useState<{ email: string; date: string | null }[]>([])
   const [metricDetailLoading, setMetricDetailLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
   const [search, setSearch] = useState('')
@@ -164,8 +164,11 @@ export default function AdminPage() {
       .eq('subscriber_state', 'potential')
       .order('created_at', { ascending: false })
 
-    const emails = (data || []).map((row: any) => row.email).filter(Boolean)
-    setMetricDetailEmails(emails)
+    const rows = (data || [])
+      .filter((row: any) => !!row.email)
+      .map((row: any) => ({ email: row.email as string, date: row.created_at || null }))
+
+    setMetricDetailRows(rows)
     setMetricDetailLoading(false)
   }
 
@@ -175,18 +178,23 @@ export default function AdminPage() {
 
     const { data } = await supabase
       .from('children')
-      .select('id, parents!inner(email)')
+      .select('created_at, parents!inner(email, created_at)')
       .eq('parents.subscriber_state', 'potential')
 
-    const emails = (data || [])
+    const rows = (data || [])
       .map((row: any) => {
         const parent = row.parents
-        if (Array.isArray(parent)) return parent[0]?.email
-        return parent?.email
+        if (Array.isArray(parent)) {
+          const first = parent[0]
+          if (!first?.email) return null
+          return { email: first.email as string, date: (row.created_at || first.created_at || null) as string | null }
+        }
+        if (!parent?.email) return null
+        return { email: parent.email as string, date: (row.created_at || parent.created_at || null) as string | null }
       })
       .filter(Boolean)
 
-    setMetricDetailEmails(emails)
+    setMetricDetailRows(rows as { email: string; date: string | null }[])
     setMetricDetailLoading(false)
   }
 
@@ -570,7 +578,7 @@ export default function AdminPage() {
                 {selectedMetricDetail === 'potentialSubscribers' ? 'Potential Subscribers Emails' : 'Attempted Payments Emails'}
               </div>
               <button
-                onClick={() => { setSelectedMetricDetail(null); setMetricDetailEmails([]) }}
+                onClick={() => { setSelectedMetricDetail(null); setMetricDetailRows([]) }}
                 style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'white', color: 'var(--muted)', fontFamily: "'Nunito',sans-serif", fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
               >
                 Close
@@ -579,13 +587,16 @@ export default function AdminPage() {
 
             {metricDetailLoading ? (
               <div style={{ color: 'var(--muted)', fontSize: 14, fontWeight: 700 }}>Loading emails...</div>
-            ) : metricDetailEmails.length === 0 ? (
+            ) : metricDetailRows.length === 0 ? (
               <div style={{ color: 'var(--muted)', fontSize: 14, fontWeight: 700 }}>No emails found.</div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-                {metricDetailEmails.map((email, idx) => (
-                  <div key={`${email}-${idx}`} style={{ padding: '8px 10px', borderRadius: 10, background: 'var(--cream)', border: '1px solid var(--border)', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
-                    {email}
+                {metricDetailRows.map((row, idx) => (
+                  <div key={`${row.email}-${row.date || 'na'}-${idx}`} style={{ padding: '8px 10px', borderRadius: 10, background: 'var(--cream)', border: '1px solid var(--border)', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
+                    <div>{row.email}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', marginTop: 2 }}>
+                      {row.date ? new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date'}
+                    </div>
                   </div>
                 ))}
               </div>
