@@ -394,10 +394,10 @@ export default function HomePage() {
           </p>
           <div style={{ marginBottom: 20, maxWidth: isMobile ? 420 : 760, marginInline: 'auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
             <YellowBtn onClick={() => scrollTo('pricing')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
-              Explore Weekly Plans
+              🔓 Unlock Full Access
             </YellowBtn>
             <GreyBtn onClick={() => scrollTo('sample-kiddle')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
-              Try Our Sample
+              📥 Get Free Sample
             </GreyBtn>
           </div>
         </div>
