@@ -42,6 +42,18 @@ function YellowBtn({ children, onClick, style, type = 'button', disabled = false
   )
 }
 
+function GreyBtn({ children, onClick, style, type = 'button', disabled = false }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties; type?: 'button' | 'submit' | 'reset'; disabled?: boolean }) {
+  const [hov, setHov] = useState(false)
+  const isInteractive = !disabled
+  return (
+      <button type={type} disabled={disabled} onClick={onClick}
+              onMouseEnter={() => isInteractive && setHov(true)} onMouseLeave={() => setHov(false)}
+              style={{ background: '#E5E7EB', backgroundImage: 'none', WebkitAppearance: 'none', appearance: 'none', color: '#111827', border: 'none', borderRadius: 'var(--r-full)', padding: '14px 32px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 16, cursor: isInteractive ? 'pointer' : 'wait', opacity: disabled ? 0.7 : 1, boxShadow: hov && isInteractive ? '0 8px 28px rgba(255,209,102,0.55)' : 'var(--shadow-yellow)', transform: hov && isInteractive ? 'translateY(-2px)' : 'none', transition: 'all 0.2s', ...style }}>
+        {children}
+      </button>
+  )
+}
+
 /* ── SECTION TAG ─────────────────────────────────────────── */
 function Tag({ children, color = 'yellow' }: { children: React.ReactNode; color?: 'yellow' | 'pink' | 'teal' }) {
   const palettes = { yellow: { bg: '#FFF8E1', color: '#BF8C00' }, pink: { bg: '#FFF0EF', color: '#E07D78' }, teal: { bg: '#E6FAF9', color: '#4AADA8' } }
@@ -381,12 +393,12 @@ export default function HomePage() {
             Kiddle is a weekly print-and-play workbook packed with activities most kids have never seen together — science, phonics, storytelling, movement, and more. Busy parents, this one's for you.
           </p>
           <div style={{ marginBottom: 20, maxWidth: isMobile ? 420 : 760, marginInline: 'auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
-            <YellowBtn onClick={() => scrollTo('sample-kiddle')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
-              Try Our Sample Kiddle
-            </YellowBtn>
             <YellowBtn onClick={() => scrollTo('pricing')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
-              Explore Plans for a Weekly Kiddle
+              Explore Weekly Plans
             </YellowBtn>
+            <GreyBtn onClick={() => scrollTo('sample-kiddle')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
+              Try Our Sample
+            </GreyBtn>
           </div>
         </div>
       </section>
