@@ -380,8 +380,13 @@ export default function HomePage() {
           <p style={{ fontSize: isMobile ? 16 : 18, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600, maxWidth: 540, marginInline: 'auto' }}>
             Kiddle is a weekly print-and-play workbook packed with activities most kids have never seen together — science, phonics, storytelling, movement, and more. Busy parents, this one's for you.
           </p>
-          <div style={{ marginBottom: 20, maxWidth: 500, marginInline: 'auto' }}>
-            <EmailCapture isCompact={isMobile} />
+          <div style={{ marginBottom: 20, maxWidth: isMobile ? 420 : 760, marginInline: 'auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+            <YellowBtn onClick={() => scrollTo('sample-kiddle')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
+              Try Our Sample Kiddle
+            </YellowBtn>
+            <YellowBtn onClick={() => scrollTo('pricing')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
+              Explore Plans for a Weekly Kiddle
+            </YellowBtn>
           </div>
         </div>
       </section>
@@ -460,6 +465,22 @@ export default function HomePage() {
       </section>
 
 
+
+      {/* ══ SAMPLE KIDDLE ═══════════════════════════════════ */}
+      <section id="sample-kiddle" style={{ padding: isMobile ? '56px 16px' : isTablet ? '64px 24px' : '80px 40px', background: 'white', borderTop: '2px solid var(--border)' }}>
+        <div style={{ maxWidth: 860, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <Tag color="teal">Try Our Sample Kiddle</Tag>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>Try Our Sample Kiddle</h2>
+            <p style={{ fontSize: isMobile ? 15 : 17, color: 'var(--body)', lineHeight: 1.75, fontWeight: 600, maxWidth: 580, margin: '0 auto' }}>
+              Enter your email and we’ll send one free sample Kiddle straight to your inbox.
+            </p>
+          </div>
+          <div style={{ maxWidth: 520, margin: '0 auto' }}>
+            <EmailCapture isCompact={isMobile} />
+          </div>
+        </div>
+      </section>
 
       {/* ══ PRICING ════════════════════════════════════════ */}
       <section id="pricing" style={{ padding: isMobile ? '64px 16px' : isTablet ? '72px 24px' : '88px 40px', background: 'var(--cream)', borderTop: '2px solid var(--border)', borderBottom: '2px solid var(--border)' }}>
