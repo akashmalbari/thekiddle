@@ -45,32 +45,27 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
 
   const html = `
     <div style="font-family: Arial, sans-serif; line-height:1.75; color:#222;">
-      <p>Hi Kiddler Parent,</p>
-      <p>This Earth Day, let’s try something different with your child. Tell them they got a message from planet Earth!</p>
-      <p>
-        <a href="${sampleNewsletterUrl}" target="_blank" rel="noopener noreferrer"
-           style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">
-           MESSAGE FROM EARTH
-        </a>
-      </p>
-      <p>
-        If your child enjoyed this little moment, take a photo and tag
+      <p>Hi Mama,</p>
+      <p>On this Mother’s Day, we made something small for you today. But I have a feeling it might stay with you longer than expected.</p>
+      <p>Not another “I love you Mom” craft. This one is different.</p>
+      <p>It’s a tiny role-reversal activity where, for a few minutes, your child gets to love you… the way you love them every day.</p>
+      <p>And the answers? They’re simple. A little funny. Sometimes incomplete. But somehow… they hit deep.</p>
+      <p>Because in those small sentences, you see what they notice. What they remember. What you mean to them. 💛 Try it today. It takes less than 10 minutes.</p>
+      <p><a href="#" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">DOWNLOAD YOUR FREE ACTIVITY</a></p>
+      <p>If this made you pause, smile, or tear up even a little… that’s exactly why we’re building <a href="https://www.thekiddle.com/" style="text-decoration:none;">The Kiddle</a>.</p>
+      <p>Not just to keep kids busy. But to create moments you’ll remember.</p>
+      <p><b>Happy YOUR Day! ♥️</b></p>
+      <p style="margin:0;">
+        Warmly,<br/>
+        Kiddle<br/>
         <a href="https://www.instagram.com/thekiddle_/" target="_blank" style="text-decoration:none;">
-          <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
-               alt="Instagram"
-               style="width:16px; height:16px; vertical-align:middle; margin-right:0; border:0; display:inline-block;"><span style="vertical-align:middle;">@thekiddle_</span>
-        </a>
-        on Instagram! This is exactly what we build at
-        <a href="https://www.thekiddle.com/" style="text-decoration:none;">
-          The Kiddle
-        </a>stories + activities + imagination in one weekly experience.
+          <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style="width:16px;height:16px;vertical-align:middle;border:0;display:inline-block;">
+          <span style="vertical-align:middle;">@thekiddle_</span>
+        </a><br/>
+        <a href="https://www.thekiddle.com/" style="text-decoration:none;">The Kiddle</a>
       </p>
-      <p><b>Happy Earth Day</b> 🌍</p>
-      <p>Warmly,<br/>The Kiddle Team</p>
       <hr style="margin:24px 0;border:none;border-top:1px solid #eee;" />
-      <p style="font-size:12px;color:#6b7280;">
-        Prefer fewer emails? <a href="${unsubscribeUrl}">Unsubscribe from emails</a>.
-      </p>
+      <p style="font-size:12px;color:#6b7280;">Prefer fewer emails? <a href="#">Unsubscribe from emails</a>.</p>
     </div>
   `
 

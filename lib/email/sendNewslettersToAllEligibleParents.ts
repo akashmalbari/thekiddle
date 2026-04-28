@@ -228,6 +228,7 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
           <p>Your new Kiddle edition is ready!</p>
           <p>This week, we’ve put together a set of fun, thoughtful activities designed to spark curiosity, challenge young minds, and create meaningful moments together.</p>
           <p><a href="${signedUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open this week’s Kiddle</a></p>
+          <p><i>Note: This download link will expire 14 days from the date of this email.</i></p>
           <p>Take your time with it—there’s no rush. Even 30–40 minutes of focused, joyful engagement can make a big difference.</p>
           <p>See you next week!</p>
           <p>The Kiddle Team</p>
