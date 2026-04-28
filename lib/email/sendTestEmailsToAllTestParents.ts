@@ -47,9 +47,9 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
     <div style="font-family: Arial, sans-serif; line-height:1.75; color:#222;">
       <p>Hi Mama,</p>
       <p>On this Mother’s Day, we made something small for you today. But I have a feeling it might stay with you longer than expected.</p>
-      <p>Not another “I love you Mom” craft. This one is different.</p>
+      <p>Not another “I love you Mom” craft. This one <b>is different.</b></p>
       <p>It’s a tiny role-reversal activity where, for a few minutes, your child gets to love you… the way you love them every day.</p>
-      <p>And the answers? They’re simple. A little funny. Sometimes incomplete. But somehow… they hit deep.</p>
+      <p>And the answers? They’re simple. A little funny. Sometimes incomplete. But somehow… <b>they hit deep.</b></p>
       <p>Because in those small sentences, you see what they notice. What they remember. What you mean to them. 💛 Try it today. It takes less than 10 minutes.</p>
       <p> <a href="${sampleNewsletterUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Download your free activity</a></p>
       <p>If this made you pause, smile, or tear up even a little… that’s exactly why we’re building <a href="https://www.thekiddle.com/" style="text-decoration:none;">The Kiddle</a>.</p>
