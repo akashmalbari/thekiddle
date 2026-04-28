@@ -51,7 +51,7 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
       <p>It’s a tiny role-reversal activity where, for a few minutes, your child gets to love you… the way you love them every day.</p>
       <p>And the answers? They’re simple. A little funny. Sometimes incomplete. But somehow… they hit deep.</p>
       <p>Because in those small sentences, you see what they notice. What they remember. What you mean to them. 💛 Try it today. It takes less than 10 minutes.</p>
-      <p><a href="#" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">DOWNLOAD YOUR FREE ACTIVITY</a></p>
+      <p> <a href="${sampleNewsletterUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Download your free activity</a></p>
       <p>If this made you pause, smile, or tear up even a little… that’s exactly why we’re building <a href="https://www.thekiddle.com/" style="text-decoration:none;">The Kiddle</a>.</p>
       <p>Not just to keep kids busy. But to create moments you’ll remember.</p>
       <p><b>Happy YOUR Day! ♥️</b></p>
@@ -83,7 +83,7 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
         body: JSON.stringify({
           from: fromEmail,
           to: [recipientEmail],
-          subject: 'We received a message… from Earth 🌍',
+          subject: 'This made me tear up (and I didn’t expect it)',
           html,
         }),
       })
