@@ -2,6 +2,7 @@ import { resolveAppBaseUrl } from '@/lib/appUrl'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 
 const RESEND_API_URL = 'https://api.resend.com/emails'
+const TEST_NEWSLETTER_FILE = 'Mothers_day_kiddle.pdf'
 
 type TestParentRow = {
   email: string | null
@@ -23,7 +24,7 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
   }
 
   const appBaseUrl = resolveAppBaseUrl().replace(/\/$/, '')
-  const sampleNewsletterUrl = `${appBaseUrl}/sample-newsletter-test`
+  const sampleNewsletterUrl = `${appBaseUrl}/sample-newsletter-test?file=${encodeURIComponent(TEST_NEWSLETTER_FILE)}`
   const unsubscribeUrl = `${appBaseUrl}/unsubscribe`
 
   const supabaseAdmin = getSupabaseAdmin()
@@ -46,17 +47,14 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
   const html = `
     <div style="font-family: Arial, sans-serif; line-height:1.75; color:#222;">
       <p>Hi Mama,</p>
-      <p>On this Mother’s Day, we made something small for you today. But I have a feeling it might stay with you longer than expected.</p>
-      <p>Not another “I love you Mom” craft. This one <b>is different.</b></p>
-      <p>It’s a tiny role-reversal activity where, for a few minutes, your child gets to love you… the way you love them every day.</p>
-      <p>And the answers? They’re simple. A little funny. Sometimes incomplete. But somehow… <b>they hit deep.</b></p>
-      <p>Because in those small sentences, you see what they notice. What they remember. What you mean to them. 💛 Try it today. It takes less than 10 minutes.</p>
-      <p> <a href="${sampleNewsletterUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Download your free activity</a></p>
-      <p>If this made you pause, smile, or tear up even a little… that’s exactly why we’re building <a href="https://www.thekiddle.com/" style="text-decoration:none;">The Kiddle</a>.</p>
-      <p>Not just to keep kids busy. But to create moments you’ll remember.</p>
-      <p><b>Happy YOUR Day! ♥️</b></p>
+      <p>We made something small for you today— but it might stay with you longer than you expect.</p>
+      <p>It’s a tiny activity where your child gets to love you… the way you love them every day.</p>
+      <p>Simple. Sweet. And surprisingly deep.</p>
+      <p>💛 Try it— it takes under 10 minutes.</p>
+      <p><a href="${sampleNewsletterUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Download your free activity</a></p>
+      <p>If it makes you pause even for a second… that’s exactly why we created<a href="https://www.thekiddle.com/" style="text-decoration:none;">The Kiddle</a>.</p>
       <p style="margin:0;">
-        Warmly,<br/>
+        Love,<br/>
         Kiddle<br/>
         <a href="https://www.instagram.com/thekiddle_/" target="_blank" style="text-decoration:none;">
           <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style="width:16px;height:16px;vertical-align:middle;border:0;display:inline-block;">
