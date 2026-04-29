@@ -82,7 +82,7 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
           <p>Simple. Sweet. And surprisingly deep.</p>
           <p>💛 Try it— it takes under 10 minutes.</p>
           <p><a href="${trackedSampleNewsletterUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Download your free activity</a></p>
-          <p>If it makes you pause even for a second… that’s exactly why we created <a href="https://www.thekiddle.com/" style="text-decoration:none;">The Kiddle</a>.</p>
+          <p>If it makes you pause even for a second… that’s exactly why we created <a href="https://www.thekiddle.com/" style="text-decoration:none;"> The Kiddle</a>.</p>
           <p style="margin:0;">
             Love,<br/>
             Kiddle<br/>
