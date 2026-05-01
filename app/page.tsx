@@ -353,15 +353,13 @@ export default function HomePage() {
         <div style={{ maxWidth: 760, margin: '0 auto', width: '100%', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', marginBottom: isMobile ? 18 : 24, paddingTop: isMobile ? 8 : 12 }}>
             <img
-              src="/hero.png"
+              src="/hero.png?v=2"
               alt="Kiddle preview"
               style={{
                 width: isMobile ? 280 : isTablet ? 360 : 420,
                 maxWidth: '100%',
                 height: 'auto',
-                borderRadius: 10,
-                border: '2px solid rgba(240,232,212,0.9)',
-                boxShadow: '0 10px 26px rgba(26,18,8,0.14)',
+                filter: 'drop-shadow(0 10px 18px rgba(26,18,8,0.14))',
                 pointerEvents: 'none',
                 userSelect: 'none',
               }}
