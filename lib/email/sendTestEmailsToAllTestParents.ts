@@ -77,9 +77,9 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
       const html = `
         <div style="font-family: Arial, sans-serif; line-height:1.75; color:#222;">
           <p>Hi Mama,</p>
-          <p>We made something small for you today— but it might stay with you longer than you expect.</p>
-          <p>It’s a tiny activity where your child gets to love you… the way you love them every day.</p>
-          <p>Simple. Sweet. And surprisingly deep.</p>
+          <p>We made something small for you today - but it might stay with you longer than you expect.</p>
+          <br>It’s a tiny activity where your child gets to love you... the way you love them every day.</br>
+          <br>Simple. Sweet. And surprisingly deep.</br>
           <p>💛 Try it— it takes under 10 minutes.</p>
           <p><a href="${trackedSampleNewsletterUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Download your free activity</a></p>
           <p>If it makes you pause even for a second… that’s exactly why we created <a href="https://www.thekiddle.com/" style="text-decoration:none;"> The Kiddle</a>.</p>
@@ -106,7 +106,7 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
         body: JSON.stringify({
           from: fromEmail,
           to: [recipientEmail],
-          subject: 'This made me tear up (and I didn’t expect it)',
+          subject: 'Mother\'s Day Special for our Kiddler Mama! ♥️',
           html,
         }),
       })
