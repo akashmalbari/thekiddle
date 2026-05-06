@@ -3,9 +3,9 @@ import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 
 const RESEND_API_URL = 'https://api.resend.com/emails'
 const TEST_NEWSLETTER_FILE = 'Mothers_day_kiddle.pdf'
-const PARAGRAPH_FONT_SIZE = '14px'
-const PARAGRAPH_LINE_HEIGHT = '1.25'
-const PARAGRAPH_MARGIN = '0 0 8px 0'
+const PARAGRAPH_FONT_SIZE = '15px'
+const PARAGRAPH_LINE_HEIGHT = '1.5'
+const PARAGRAPH_MARGIN = '0 0 12px 0'
 
 type TestParentRow = {
   email: string | null
