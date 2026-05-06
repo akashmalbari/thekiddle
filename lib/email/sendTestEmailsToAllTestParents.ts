@@ -3,6 +3,9 @@ import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 
 const RESEND_API_URL = 'https://api.resend.com/emails'
 const TEST_NEWSLETTER_FILE = 'Mothers_day_kiddle.pdf'
+const PARAGRAPH_FONT_SIZE = '16px'
+const PARAGRAPH_LINE_HEIGHT = '1.55'
+const PARAGRAPH_MARGIN = '0 0 12px 0'
 
 type TestParentRow = {
   email: string | null
@@ -73,17 +76,18 @@ export async function sendTestEmailsToAllTestParents(): Promise<SendTestEmailsRe
       }
 
       const trackedSampleNewsletterUrl = `${appBaseUrl}/api/test-newsletter-click/${encodeURIComponent((sendRow as TestNewsletterSendRow).id)}`
+      const paragraphStyle = `font-size:${PARAGRAPH_FONT_SIZE};line-height:${PARAGRAPH_LINE_HEIGHT};margin:${PARAGRAPH_MARGIN};`
 
       const html = `
         <div style="font-family: Arial, sans-serif; line-height:1.75; color:#222;">
-          <p>Hi Mama,</p>
-          <p>We made something small for you today - but it might stay with you longer than you expect.</p>
+          <p style="${paragraphStyle}">Hi Mama,</p>
+          <br>We made something small for you today - but it might stay with you longer than you expect.</br>
           <br>It’s a tiny activity where your child gets to love you... the way you love them every day.</br>
           <br>Simple. Sweet. And surprisingly deep.</br>
-          <p>💛 Try it— it takes under 10 minutes.</p>
-          <p><a href="${trackedSampleNewsletterUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Download your free activity</a></p>
-          <p>If it makes you pause even for a second… that’s exactly why we created <a href="https://www.thekiddle.com/" style="text-decoration:none;"> The Kiddle</a>.</p>
-          <p style="margin:0;">
+          <p style="${paragraphStyle}">💛 Try it— it takes under 10 minutes.</p>
+          <p style="${paragraphStyle}"><a href="${trackedSampleNewsletterUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Download your free activity</a></p>
+          <p style="${paragraphStyle}">If it makes you pause even for a second… that’s exactly why we created <a href="https://www.thekiddle.com/" style="text-decoration:none;"> The Kiddle</a>.</p>
+          <p style="font-size:${PARAGRAPH_FONT_SIZE};line-height:${PARAGRAPH_LINE_HEIGHT};margin:0;">
             Love,<br/>
             Kiddle<br/>
             <a href="https://www.instagram.com/thekiddle_/" target="_blank" style="text-decoration:none;">
