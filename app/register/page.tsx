@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties, type FocusEvent } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
@@ -8,7 +8,6 @@ type PricingData = {
   countryCode: string
   countryName: string
   currencyCode: string
-  monthlyDisplay: string
   yearlyDisplay: string
 }
 
@@ -40,7 +39,7 @@ function StepDots({ step }: { step: number }) {
   )
 }
 
-const inputCss: React.CSSProperties = {
+const inputCss: CSSProperties = {
   width: '100%', padding: '13px 18px',
   borderRadius: 14, border: '2px solid var(--border)',
   fontSize: 15, fontFamily: "'Nunito',sans-serif",
@@ -51,7 +50,7 @@ const inputCss: React.CSSProperties = {
 
 function RegisterInner() {
   const params = useSearchParams()
-  const planParam = params.get('plan') || 'monthly'
+  const planParam = params.get('plan') === 'yearly' ? 'yearly' : 'yearly'
 
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
@@ -66,7 +65,6 @@ function RegisterInner() {
     countryCode: 'US',
     countryName: 'United States',
     currencyCode: 'USD',
-    monthlyDisplay: '$1.99',
     yearlyDisplay: '$21.99',
   })
 
@@ -87,7 +85,6 @@ function RegisterInner() {
           countryCode: data.countryCode,
           countryName: data.countryName,
           currencyCode: data.currencyCode,
-          monthlyDisplay: data.monthlyDisplay,
           yearlyDisplay: data.yearlyDisplay,
         })
       } catch {
@@ -120,11 +117,11 @@ function RegisterInner() {
 
   const isMobile = viewportWidth < 768
 
-  const focus = (color: string) => (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const focus = (color: string) => (e: FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     e.target.style.borderColor = color
     e.target.style.boxShadow = `0 0 0 4px ${color}22`
   }
-  const blur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const blur = (e: FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     e.target.style.borderColor = 'var(--border)'
     e.target.style.boxShadow = 'none'
   }
@@ -135,7 +132,12 @@ function RegisterInner() {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ parentName: name, email, childAge: parseInt(childAge), plan }),
+        body: JSON.stringify({
+          parentName: name,
+          email,
+          childAge: parseInt(childAge),
+          plan,
+        }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Something went wrong') }
 
@@ -146,7 +148,7 @@ function RegisterInner() {
     finally { setLoading(false) }
   }
 
-  const card: React.CSSProperties = { background: 'white', borderRadius: 28, padding: isMobile ? '24px 20px' : '36px', border: '2px solid var(--border)', boxShadow: 'var(--shadow-md)', animation: 'slide-up 0.45s ease both' }
+  const card: CSSProperties = { background: 'white', borderRadius: 28, padding: isMobile ? '24px 20px' : '36px', border: '2px solid var(--border)', boxShadow: 'var(--shadow-md)', animation: 'slide-up 0.45s ease both' }
 
   if (done) return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #FFF8E1, #FFF0EF, #E6FAF9)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -209,7 +211,7 @@ function RegisterInner() {
               <div style={card}>
                 <div style={{ marginBottom: 28 }}>
                   <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', letterSpacing: 1, textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>Child age</label>
-                  <select style={{ ...inputCss, appearance: 'none' } as React.CSSProperties} value={childAge} onChange={e => setChildAge(e.target.value)} onFocus={focus('#FFAAA5') as any} onBlur={blur as any}>
+                  <select style={{ ...inputCss, appearance: 'none' } as CSSProperties} value={childAge} onChange={e => setChildAge(e.target.value)} onFocus={focus('#FFAAA5') as any} onBlur={blur as any}>
                     <option value="">Select age</option>
                     {['2','3','4','5','6'].map(a => <option key={a} value={a}>{a} years old</option>)}
                   </select>
@@ -231,12 +233,12 @@ function RegisterInner() {
               <div style={{ textAlign: 'center', marginBottom: 32 }}>
                 <div style={{ fontSize: 52, marginBottom: 14 }}>🎉</div>
                 <h1 style={{ fontSize: isMobile ? 28 : 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>Almost there!</h1>
-                <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>Pick the plan that works for your family.</p>
+                <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>You’re choosing our yearly family plan.</p>
               </div>
               <div style={card}>
                 {/* Plan picker */}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 24 }}>
-                  {[{ id: 'monthly', label: 'Monthly', price: `${pricing.monthlyDisplay}/mo`, note: '4 Kiddles' }, { id: 'yearly', label: 'Yearly', price: `${pricing.yearlyDisplay}/yr`, note: '1 month free ⭐' }].map(p => (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginBottom: 24 }}>
+                  {[{ id: 'yearly', label: 'Yearly', price: `${pricing.yearlyDisplay}/yr`, note: '1 month free ⭐' }].map(p => (
                     <div key={p.id} onClick={() => setPlan(p.id)} style={{ borderRadius: 16, padding: '16px', border: `2px solid ${plan === p.id ? '#FFD166' : 'var(--border)'}`, background: plan === p.id ? '#FFF8E1' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{p.label}</div>
                       <div style={{ fontFamily: "'Baloo 2',cursive", fontSize: 22, fontWeight: 800, color: 'var(--dark)' }}>{p.price}</div>
