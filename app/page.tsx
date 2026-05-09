@@ -6,7 +6,6 @@ type PricingData = {
   countryCode: string
   countryName: string
   currencyCode: string
-  monthlyDisplay: string
   yearlyDisplay: string
 }
 
@@ -231,7 +230,6 @@ export default function HomePage() {
     countryCode: 'US',
     countryName: 'United States',
     currencyCode: 'USD',
-    monthlyDisplay: '$1.99',
     yearlyDisplay: '$21.99',
   })
 
@@ -258,7 +256,6 @@ export default function HomePage() {
           countryCode: data.countryCode,
           countryName: data.countryName,
           currencyCode: data.currencyCode,
-          monthlyDisplay: data.monthlyDisplay,
           yearlyDisplay: data.yearlyDisplay,
         })
       } catch {
@@ -380,7 +377,7 @@ export default function HomePage() {
           </p>
           <div style={{ marginBottom: 20, maxWidth: isMobile ? 420 : 760, marginInline: 'auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
             <YellowBtn onClick={() => scrollTo('pricing')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
-              🔓 Unlock Full Access
+              🔓 Subscribe
             </YellowBtn>
             <GreyBtn onClick={() => scrollTo('sample-kiddle')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
               📥 Get Free Sample
@@ -486,31 +483,9 @@ export default function HomePage() {
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <Tag color="yellow">Simple Pricing</Tag>
             <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>Choose Your Plan</h2>
-            <p style={{ fontSize: isMobile ? 15 : 17, color: 'var(--body)', fontWeight: 600 }}>Flexible options for every family. Cancel anytime, no questions asked.</p>
+            <p style={{ fontSize: isMobile ? 15 : 17, color: 'var(--body)', fontWeight: 600 }}>Simple yearly pricing for every family. Cancel anytime, no questions asked.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24 }}>
-            {/* Monthly */}
-            <div style={{ background: 'white', borderRadius: 28, padding: '36px', border: '2px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Monthly Explorer</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-                <span style={{ fontFamily: "'Baloo 2',cursive", fontSize: 48, fontWeight: 800, color: 'var(--dark)' }}>{pricing.monthlyDisplay}</span>
-                <span style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 700 }}>/month</span>
-              </div>
-              <p style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600, marginBottom: 28 }}>Perfect for trying it out</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
-                {['4 weekly Kiddles', '12+ activities per month', 'Printable activity sheets', 'Parent guidance tips', 'Cancel anytime'].map((f, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600, color: 'var(--body)' }}>
-                    <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#FFF8E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>✓</span>
-                    {f}
-                  </div>
-                ))}
-              </div>
-              <Link href="/register?plan=monthly" style={{ display: 'block', textAlign: 'center', background: 'var(--border)', color: 'var(--body)', borderRadius: 'var(--r-full)', padding: '14px', fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: 15, textDecoration: 'none', transition: 'background 0.2s' }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#E6E0D0'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--border)'}>
-                Subscribe Now
-              </Link>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24, maxWidth: 440, margin: '0 auto' }}>
             {/* Yearly — featured */}
             <div style={{ background: 'white', borderRadius: 28, padding: '36px', border: '3px solid #FFD166', boxShadow: 'var(--shadow-yellow)', position: 'relative' }}>
               <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: '#FFD166', color: '#1A1208', borderRadius: 'var(--r-full)', padding: '5px 18px', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>

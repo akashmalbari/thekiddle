@@ -117,6 +117,7 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       success_url: `${appUrl}/register?billing=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/register?billing=cancelled`,
+      allow_promotion_codes: true,
       line_items: [{ price: stripePriceId, quantity: 1 }],
       customer_email: parent.email,
       client_reference_id: parent.id,
