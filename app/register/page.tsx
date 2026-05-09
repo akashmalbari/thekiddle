@@ -31,10 +31,10 @@ function Logo() {
 function StepDots({ step }: { step: number }) {
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-      {[0,1,2].map(i => (
+      {[0,1].map(i => (
         <div key={i} style={{ height: 6, borderRadius: 6, width: i === step ? 28 : i < step ? 16 : 14, background: i < step ? '#6ECDC8' : i === step ? '#FFD166' : '#F0E8D4', transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)' }} />
       ))}
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', marginLeft: 6 }}>{step + 1} / 3</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', marginLeft: 6 }}>{step + 1} / 2</span>
     </div>
   )
 }
@@ -50,13 +50,11 @@ const inputCss: CSSProperties = {
 
 function RegisterInner() {
   const params = useSearchParams()
-  const planParam = params.get('plan') === 'yearly' ? 'yearly' : 'yearly'
 
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [childAge, setChildAge] = useState('')
-  const [plan, setPlan] = useState(planParam)
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
@@ -111,7 +109,7 @@ function RegisterInner() {
 
     if (billingStatus === 'cancelled') {
       setError('Payment was cancelled. You can try again anytime.')
-      setStep(2)
+      setStep(1)
     }
   }, [params])
 
@@ -136,7 +134,7 @@ function RegisterInner() {
           parentName: name,
           email,
           childAge: parseInt(childAge),
-          plan,
+          plan: 'yearly',
         }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Something went wrong') }
@@ -218,49 +216,12 @@ function RegisterInner() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
                   <button onClick={() => setStep(0)} style={{ padding: '13px 20px', borderRadius: 14, border: '2px solid var(--border)', background: 'white', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 700, cursor: 'pointer', color: 'var(--muted)' }}>← Back</button>
-                  <button onClick={() => { if (childAge) setStep(2) }} disabled={!childAge}
-                    style={{ flex: 1, padding: '13px', borderRadius: 14, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 800, cursor: childAge ? 'pointer' : 'not-allowed', background: childAge ? '#FFD166' : 'var(--border)', color: childAge ? '#1A1208' : 'var(--hint)', boxShadow: childAge ? 'var(--shadow-yellow)' : 'none', transition: 'all 0.2s' }}>
-                    Continue → Choose your plan
+                  <button onClick={() => { if (childAge) submit() }} disabled={!childAge || loading}
+                    style={{ flex: 1, padding: '13px', borderRadius: 14, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 800, cursor: childAge && !loading ? 'pointer' : 'not-allowed', background: childAge && !loading ? '#FFD166' : 'var(--border)', color: childAge && !loading ? '#1A1208' : 'var(--hint)', boxShadow: childAge && !loading ? 'var(--shadow-yellow)' : 'none', transition: 'all 0.2s' }}>
+                    {loading ? '⏳ Redirecting...' : 'Continue → Checkout'}
                   </button>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 2: Plan ── */}
-          {step === 2 && (
-            <div>
-              <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                <div style={{ fontSize: 52, marginBottom: 14 }}>🎉</div>
-                <h1 style={{ fontSize: isMobile ? 28 : 32, fontWeight: 800, color: 'var(--dark)', marginBottom: 8 }}>Almost there!</h1>
-                <p style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>You’re choosing our yearly family plan.</p>
-              </div>
-              <div style={card}>
-                {/* Plan picker */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginBottom: 24 }}>
-                  {[{ id: 'yearly', label: 'Yearly', price: `${pricing.yearlyDisplay}/yr`, note: '1 month free ⭐' }].map(p => (
-                    <div key={p.id} onClick={() => setPlan(p.id)} style={{ borderRadius: 16, padding: '16px', border: `2px solid ${plan === p.id ? '#FFD166' : 'var(--border)'}`, background: plan === p.id ? '#FFF8E1' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{p.label}</div>
-                      <div style={{ fontFamily: "'Baloo 2',cursive", fontSize: 22, fontWeight: 800, color: 'var(--dark)' }}>{p.price}</div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: plan === p.id ? '#E6B84A' : 'var(--hint)' }}>{p.note}</div>
-                    </div>
-                  ))}
-                </div>
-                {/* Summary */}
-                <div style={{ background: '#E6FAF9', borderRadius: 14, padding: '14px 18px', marginBottom: 20, border: '2px solid #6ECDC830' }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: '#4AADA8', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Summary</div>
-                  <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: isMobile ? 4 : 12, fontSize: 14, fontWeight: 700, color: 'var(--body)' }}>
-                    <span>👤 {name}</span><span>📧 {email}</span>
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--body)', marginTop: 4 }}>🧒 Child age: {childAge}</div>
-                </div>
-                {error && <div style={{ background: '#FFF0EF', border: '2px solid #FFAAA5', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#E07D78', fontWeight: 700 }}>⚠️ {error}</div>}
-                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
-                  <button onClick={() => setStep(1)} style={{ padding: '13px 20px', borderRadius: 14, border: '2px solid var(--border)', background: 'white', fontFamily: "'Nunito',sans-serif", fontSize: 15, fontWeight: 700, cursor: 'pointer', color: 'var(--muted)' }}>← Back</button>
-                  <button onClick={submit} disabled={loading} style={{ flex: 1, padding: '13px', borderRadius: 14, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 16, fontWeight: 800, cursor: loading ? 'wait' : 'pointer', background: loading ? 'var(--border)' : '#FFD166', color: loading ? 'var(--hint)' : '#1A1208', boxShadow: loading ? 'none' : 'var(--shadow-yellow)', transition: 'all 0.2s' }}>
-                    {loading ? '⏳ Setting up...' : "Let's go! 🚀"}
-                  </button>
-                </div>
+                {error && <div style={{ background: '#FFF0EF', border: '2px solid #FFAAA5', borderRadius: 10, padding: '10px 14px', marginTop: 14, fontSize: 13, color: '#E07D78', fontWeight: 700 }}>⚠️ {error}</div>}
               </div>
             </div>
           )}
