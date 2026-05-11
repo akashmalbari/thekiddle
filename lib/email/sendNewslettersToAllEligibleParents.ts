@@ -4,6 +4,25 @@ import { buildUnsubscribeLink } from '@/lib/unsubscribe'
 const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
 const BATCH_SIZE = 200
+const SEND_WINDOW_TIME_ZONE = 'America/New_York'
+
+function toDateKeyInTimeZone(value: string | number | Date, timeZone: string) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(value))
+}
+
+function dateKeyDaysAgo(daysAgo: number, timeZone: string) {
+  const now = new Date()
+  const nowKey = toDateKeyInTimeZone(now, timeZone)
+  const [y, m, d] = nowKey.split('-').map(Number)
+  const midnightUtc = new Date(Date.UTC(y, m - 1, d))
+  midnightUtc.setUTCDate(midnightUtc.getUTCDate() - daysAgo)
+  return toDateKeyInTimeZone(midnightUtc, timeZone)
+}
 
 type ParentRow = {
   id: string
@@ -76,7 +95,7 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
 
   const signedUrlCache = new Map<number, string>()
   const now = Date.now()
-  const weeklyCutoff = new Date(now - 7 * 24 * 60 * 60 * 1000)
+  const weeklyCutoffDateKey = dateKeyDaysAgo(7, SEND_WINDOW_TIME_ZONE)
 
   let sentCount = 0
   let skippedWeeklyLimit = 0
@@ -162,7 +181,8 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
 
       const sentWithinWeek = sentProgress.some((row) => {
         if (!row.sent_at) return false
-        return new Date(row.sent_at).getTime() >= weeklyCutoff.getTime()
+        const sentDateKey = toDateKeyInTimeZone(row.sent_at, SEND_WINDOW_TIME_ZONE)
+        return sentDateKey > weeklyCutoffDateKey
       })
 
       if (sentWithinWeek) {
