@@ -76,7 +76,7 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
 
   const signedUrlCache = new Map<number, string>()
   const now = Date.now()
-  const weeklyCutoff = new Date(now - 7 * 24 * 60 * 60 * 1000)
+  const weeklyCutoff = new Date(now - 6 * 24 * 60 * 60 * 1000)
 
   let sentCount = 0
   let skippedWeeklyLimit = 0
