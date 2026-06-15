@@ -1,7 +1,7 @@
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { buildNewsletterDownloadLink } from '@/lib/newsletterDownloadToken'
 import { buildUnsubscribeLink } from '@/lib/unsubscribe'
 
-const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
 const BATCH_SIZE = 200
 
@@ -25,11 +25,10 @@ type NewsletterRow = {
   pdf_path: string | null
 }
 
-type ProgressRow = {
+type SentProgressRow = {
   parent_id: string
   newsletter_id: number
   sent_at: string | null
-  status: string | null
 }
 
 export type SendNewslettersResult = {
@@ -74,7 +73,6 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
     newsletterIndexById.set(orderedNewsletters[i].id, i)
   }
 
-  const signedUrlCache = new Map<number, string>()
   const now = Date.now()
   const weeklyCutoff = new Date(now - 6 * 24 * 60 * 60 * 1000)
 
@@ -122,21 +120,7 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
       }
     }
 
-    const parentIds = parentRows.map((p) => p.id)
-    const { data: progressRows, error: progressError } = await supabaseAdmin
-      .from('parent_newsletter_progress')
-      .select('parent_id,newsletter_id,sent_at,status')
-      .in('parent_id', parentIds)
-
-    if (progressError) {
-      throw new Error(`Failed to load newsletter progress: ${progressError.message}`)
-    }
-
-    const progressByParent = new Map<string, ProgressRow[]>()
-    for (const row of (progressRows || []) as ProgressRow[]) {
-      if (!progressByParent.has(row.parent_id)) progressByParent.set(row.parent_id, [])
-      progressByParent.get(row.parent_id)!.push(row)
-    }
+    const eligibleParents: ParentRow[] = []
 
     for (const parent of parentRows) {
       const subscription = parent.active_subscription_id ? subscriptionsById.get(parent.active_subscription_id) : null
@@ -157,10 +141,33 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
         continue
       }
 
-      const parentProgress = progressByParent.get(parent.id) || []
-      const sentProgress = parentProgress.filter((row) => row.status === 'SENT')
+      eligibleParents.push(parent)
+    }
 
-      const sentWithinWeek = sentProgress.some((row) => {
+    const progressByParent = new Map<string, SentProgressRow[]>()
+    const eligibleParentIds = eligibleParents.map((p) => p.id)
+
+    if (eligibleParentIds.length > 0) {
+      const { data: progressRows, error: progressError } = await supabaseAdmin
+        .from('parent_newsletter_progress')
+        .select('parent_id,newsletter_id,sent_at')
+        .in('parent_id', eligibleParentIds)
+        .eq('status', 'SENT')
+
+      if (progressError) {
+        throw new Error(`Failed to load newsletter progress: ${progressError.message}`)
+      }
+
+      for (const row of (progressRows || []) as SentProgressRow[]) {
+        if (!progressByParent.has(row.parent_id)) progressByParent.set(row.parent_id, [])
+        progressByParent.get(row.parent_id)!.push(row)
+      }
+    }
+
+    for (const parent of eligibleParents) {
+      const parentProgress = progressByParent.get(parent.id) || []
+
+      const sentWithinWeek = parentProgress.some((row) => {
         if (!row.sent_at) return false
         return new Date(row.sent_at).getTime() >= weeklyCutoff.getTime()
       })
@@ -171,7 +178,7 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
       }
 
       let lastSentIndex = -1
-      for (const row of sentProgress) {
+      for (const row of parentProgress) {
         const idx = newsletterIndexById.get(row.newsletter_id)
         if (typeof idx === 'number' && idx > lastSentIndex) {
           lastSentIndex = idx
@@ -197,24 +204,13 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
         continue
       }
 
-      let signedUrl = signedUrlCache.get(nextNewsletter.id)
-      if (!signedUrl) {
-        const { data: signed, error: signedError } = await supabaseAdmin.storage
-          .from(BUCKET)
-          .createSignedUrl(nextNewsletter.pdf_path, 60 * 60 * 24 * 14)
-
-        if (signedError || !signed?.signedUrl) {
-          await supabaseAdmin
-            .from('parent_newsletter_progress')
-            .update({ status: 'FAILED', sent_at: new Date().toISOString() })
-            .eq('id', claimedProgress.id)
-
-          continue
-        }
-
-        signedUrl = signed.signedUrl
-        signedUrlCache.set(nextNewsletter.id, signedUrl)
-      }
+      const newsletterDownloadLink = buildNewsletterDownloadLink({
+        parentId: parent.id,
+        email: parent.email,
+        newsletterId: nextNewsletter.id,
+        pdfPath: nextNewsletter.pdf_path,
+        title: nextNewsletter.title,
+      })
 
       const unsubscribeLink = buildUnsubscribeLink({
         parentId: parent.id,
@@ -227,7 +223,7 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
           <p>Hi,</p>
           <p>Your new Kiddle edition is ready!</p>
           <p>This week, we’ve put together a set of fun, thoughtful activities designed to spark curiosity, challenge young minds, and create meaningful moments together.</p>
-          <p><a href="${signedUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open this week’s Kiddle</a></p>
+          <p><a href="${newsletterDownloadLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open this week’s Kiddle</a></p>
           <p><i>Note: This download link will expire 14 days from the date of this email.</i></p>
           <p>Take your time with it—there’s no rush. Even 30–40 minutes of focused, joyful engagement can make a big difference.</p>
           <p>See you next week!</p>

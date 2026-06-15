@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { requireAdmin } from '@/lib/serverAdminAuth'
+import { buildNewsletterDownloadLink } from '@/lib/newsletterDownloadToken'
 import { buildUnsubscribeLink } from '@/lib/unsubscribe'
 
-const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
 
 type EligibleParent = {
@@ -88,8 +88,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   })
 
   const newsletterCache = new Map<number, NewsletterRecord | null>()
-  const signedUrlCache = new Map<number, string>()
-
   let sentCount = 0
   let failedCount = 0
   let skippedCount = 0
@@ -142,21 +140,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         continue
       }
 
-      let signedUrl = signedUrlCache.get(nextNewsletterId)
-      if (!signedUrl) {
-        const { data: signed, error: signedError } = await supabaseAdmin.storage
-          .from(BUCKET)
-          .createSignedUrl(newsletter.pdf_path, 60 * 60 * 24 * 14)
-
-        if (signedError || !signed?.signedUrl) {
-          failedCount += 1
-          continue
-        }
-
-        signedUrl = signed.signedUrl
-        signedUrlCache.set(nextNewsletterId, signedUrl)
-      }
-
       const { data: claimedProgress, error: claimError } = await supabaseAdmin
         .from('parent_newsletter_progress')
         .insert({
@@ -177,6 +160,14 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         continue
       }
 
+      const newsletterDownloadLink = buildNewsletterDownloadLink({
+        parentId: parent.id,
+        email: parent.email,
+        newsletterId: newsletter.id,
+        pdfPath: newsletter.pdf_path,
+        title: newsletter.title,
+      })
+
       const unsubscribeLink = buildUnsubscribeLink({
         parentId: parent.id,
         email: parent.email,
@@ -188,7 +179,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
           <p>Hi,</p>
           <p>Your new Kiddle edition is ready!</p>
           <p>This week, we’ve put together a set of fun, thoughtful activities designed to spark curiosity, challenge young minds, and create meaningful moments together.</p>
-          <p><a href="${signedUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open this week’s Kiddle</a></p>
+          <p><a href="${newsletterDownloadLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open this week’s Kiddle</a></p>
           <p><i>Note: This download link will expire 14 days from the date of this email.</i></p>
           <p>Take your time with it—there’s no rush. Even 30–40 minutes of focused, joyful engagement can make a big difference.</p>
           <p>See you next week!</p>

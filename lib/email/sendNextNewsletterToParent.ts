@@ -1,7 +1,7 @@
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { buildNewsletterDownloadLink } from '@/lib/newsletterDownloadToken'
 import { buildUnsubscribeLink } from '@/lib/unsubscribe'
 
-const BUCKET = 'newsletters'
 const RESEND_API_URL = 'https://api.resend.com/emails'
 
 type SendNextNewsletterParams = {
@@ -71,14 +71,6 @@ export async function sendNextNewsletterToParent({
     return { sent: false, reason: 'newsletter_missing_pdf' }
   }
 
-  const { data: signed, error: signedError } = await supabaseAdmin.storage
-    .from(BUCKET)
-    .createSignedUrl(newsletter.pdf_path, 60 * 60 * 24 * 14)
-
-  if (signedError || !signed?.signedUrl) {
-    throw new Error(signedError?.message || 'Unable to create newsletter signed URL')
-  }
-
   const { data: claimedProgress, error: claimError } = await supabaseAdmin
     .from('parent_newsletter_progress')
     .insert({
@@ -93,6 +85,14 @@ export async function sendNextNewsletterToParent({
     return { sent: false, reason: 'progress_claim_failed' }
   }
 
+  const newsletterDownloadLink = buildNewsletterDownloadLink({
+    parentId,
+    email,
+    newsletterId: newsletter.id,
+    pdfPath: newsletter.pdf_path,
+    title: newsletter.title,
+  })
+
   const unsubscribeLink = buildUnsubscribeLink({
     parentId,
     email,
@@ -104,7 +104,7 @@ export async function sendNextNewsletterToParent({
       <p>Hi,</p>
       <p>Your new Kiddle edition is ready!</p>
       <p>This week, we’ve put together a set of fun, thoughtful activities designed to spark curiosity, challenge young minds, and create meaningful moments together.</p>
-      <p><a href="${signed.signedUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open this week’s Kiddle</a></p>
+      <p><a href="${newsletterDownloadLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#FFD166;color:#1A1208;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:700;">Open this week’s Kiddle</a></p>
       <p><i>Note: This download link will expire 14 days from the date of this email.</i></p>
       <p>Take your time with it—there’s no rush. Even 30–40 minutes of focused, joyful engagement can make a big difference.</p>
       <p>See you next week!</p>

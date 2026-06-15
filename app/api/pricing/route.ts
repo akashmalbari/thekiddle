@@ -15,6 +15,27 @@ const FALLBACK_PRICING = {
   yearly_price: 21.99,
 }
 
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000
+const CDN_CACHE_SECONDS = 24 * 60 * 60
+const BROWSER_CACHE_SECONDS = 60 * 60
+const ERROR_CACHE_SECONDS = 5 * 60
+
+type PricingRow = typeof FALLBACK_PRICING
+
+type PricingResponse = {
+  countryCode: string
+  countryName: string
+  currencyCode: string
+  currencySymbol: string
+  monthlyPrice: number
+  yearlyPrice: number
+  monthlyDisplay: string
+  yearlyDisplay: string
+  fallbackUsed: boolean
+}
+
+const pricingCache = new Map<string, { expiresAt: number; response: PricingResponse }>()
+
 function formatCurrency(amount: number, currencyCode: string) {
   try {
     return new Intl.NumberFormat('en-US', {
@@ -27,16 +48,47 @@ function formatCurrency(amount: number, currencyCode: string) {
 }
 
 function detectCountryCode(req: NextRequest) {
-  return (
+  const countryCode = (
     req.headers.get('x-vercel-ip-country') ||
     req.headers.get('cf-ipcountry') ||
     req.headers.get('x-country-code') ||
     'US'
-  ).toUpperCase()
+  ).trim().toUpperCase()
+
+  return /^[A-Z]{2}$/.test(countryCode) ? countryCode : 'US'
+}
+
+function buildPricingResponse(row: PricingRow, fallbackUsed: boolean): PricingResponse {
+  return {
+    countryCode: row.country_code,
+    countryName: row.country_name,
+    currencyCode: row.currency_code,
+    currencySymbol: row.currency_symbol,
+    monthlyPrice: Number(row.monthly_price),
+    yearlyPrice: Number(row.yearly_price),
+    monthlyDisplay: formatCurrency(Number(row.monthly_price), row.currency_code),
+    yearlyDisplay: formatCurrency(Number(row.yearly_price), row.currency_code),
+    fallbackUsed,
+  }
+}
+
+function jsonWithCache(response: PricingResponse, cacheSeconds = CDN_CACHE_SECONDS) {
+  return NextResponse.json(response, {
+    headers: {
+      'Cache-Control': `public, max-age=${BROWSER_CACHE_SECONDS}, s-maxage=${cacheSeconds}, stale-while-revalidate=${CDN_CACHE_SECONDS * 7}`,
+      Vary: 'x-vercel-ip-country, cf-ipcountry, x-country-code',
+    },
+  })
 }
 
 export async function GET(req: NextRequest) {
   const countryCode = detectCountryCode(req)
+  const now = Date.now()
+  const cached = pricingCache.get(countryCode)
+
+  if (cached && cached.expiresAt > now) {
+    return jsonWithCache(cached.response)
+  }
 
   try {
     const { data } = await supabase
@@ -47,29 +99,12 @@ export async function GET(req: NextRequest) {
       .maybeSingle()
 
     const row = data || FALLBACK_PRICING
+    const response = buildPricingResponse(row, !data)
 
-    return NextResponse.json({
-      countryCode: row.country_code,
-      countryName: row.country_name,
-      currencyCode: row.currency_code,
-      currencySymbol: row.currency_symbol,
-      monthlyPrice: Number(row.monthly_price),
-      yearlyPrice: Number(row.yearly_price),
-      monthlyDisplay: formatCurrency(Number(row.monthly_price), row.currency_code),
-      yearlyDisplay: formatCurrency(Number(row.yearly_price), row.currency_code),
-      fallbackUsed: !data,
-    })
+    pricingCache.set(countryCode, { expiresAt: now + CACHE_TTL_MS, response })
+
+    return jsonWithCache(response)
   } catch {
-    return NextResponse.json({
-      countryCode: FALLBACK_PRICING.country_code,
-      countryName: FALLBACK_PRICING.country_name,
-      currencyCode: FALLBACK_PRICING.currency_code,
-      currencySymbol: FALLBACK_PRICING.currency_symbol,
-      monthlyPrice: FALLBACK_PRICING.monthly_price,
-      yearlyPrice: FALLBACK_PRICING.yearly_price,
-      monthlyDisplay: formatCurrency(FALLBACK_PRICING.monthly_price, FALLBACK_PRICING.currency_code),
-      yearlyDisplay: formatCurrency(FALLBACK_PRICING.yearly_price, FALLBACK_PRICING.currency_code),
-      fallbackUsed: true,
-    })
+    return jsonWithCache(buildPricingResponse(FALLBACK_PRICING, true), ERROR_CACHE_SECONDS)
   }
 }

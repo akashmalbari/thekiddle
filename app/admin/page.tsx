@@ -33,6 +33,10 @@ type Subscriber = {
   children: { age_value: number }[]
 }
 
+type SubscriberWithChildren = Omit<Subscriber, 'children'> & {
+  children: { age_value: number }[] | null
+}
+
 type NewsletterRecord = {
   id: number
   title: string
@@ -125,13 +129,13 @@ export default function AdminPage() {
     setLoadingData(true)
     const { data: parents } = await supabase
       .from('parents')
-      .select('id, name, email, subscriber_state, created_at')
+      .select('id, name, email, subscriber_state, created_at, children(age_value)')
       .eq('subscriber_state', 'active')
       .order('created_at', { ascending: false })
     if (!parents) { setLoadingData(false); return }
-    const enriched: Subscriber[] = await Promise.all(parents.map(async p => {
-      const { data: kids } = await supabase.from('children').select('age_value').eq('parent_id', p.id)
-      return { ...p, children: kids || [] }
+    const enriched: Subscriber[] = (parents as SubscriberWithChildren[]).map(p => ({
+      ...p,
+      children: p.children || [],
     }))
     setSubscribers(enriched); setLoadingData(false)
   }
