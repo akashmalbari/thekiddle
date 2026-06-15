@@ -89,7 +89,7 @@ export default function AdminPage() {
   const [loginPw, setLoginPw] = useState('')
   const [loginErr, setLoginErr] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
-  const [tab, setTab] = useState<'subscribers' | 'newsletters' | 'links' | 'pricing' | 'contacts'>('subscribers')
+  const [tab, setTab] = useState<'subscribers' | 'newsletters' | 'links' | 'email' | 'pricing' | 'contacts'>('subscribers')
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [potentialSubscriberCount, setPotentialSubscriberCount] = useState(0)
   const [attemptedPaymentsCount, setAttemptedPaymentsCount] = useState(0)
@@ -122,6 +122,12 @@ export default function AdminPage() {
   const [newsletterFile, setNewsletterFile] = useState<File | null>(null)
   const [uploadingPdf, setUploadingPdf] = useState(false)
   const [savingNewsletter, setSavingNewsletter] = useState(false)
+  const [editingNewsletterId, setEditingNewsletterId] = useState<number | null>(null)
+  const [editNewsletterTitle, setEditNewsletterTitle] = useState('')
+  const [editNewsletterIssueDate, setEditNewsletterIssueDate] = useState('')
+  const [editNewsletterFile, setEditNewsletterFile] = useState<File | null>(null)
+  const [savingNewsletterEdit, setSavingNewsletterEdit] = useState(false)
+  const [uploadingEditPdf, setUploadingEditPdf] = useState(false)
   const [sendingNewsletters, setSendingNewsletters] = useState(false)
   const [sendingTestEmails, setSendingTestEmails] = useState(false)
   const [signedLinkNewsletterId, setSignedLinkNewsletterId] = useState('')
@@ -129,6 +135,11 @@ export default function AdminPage() {
   const [signedLinkLoading, setSignedLinkLoading] = useState(false)
   const [signedLinkMsg, setSignedLinkMsg] = useState('')
   const [generatedNewsletterLink, setGeneratedNewsletterLink] = useState<GeneratedNewsletterLink | null>(null)
+  const [adhocRecipients, setAdhocRecipients] = useState('')
+  const [adhocSubject, setAdhocSubject] = useState('')
+  const [adhocMessage, setAdhocMessage] = useState('')
+  const [adhocEmailLoading, setAdhocEmailLoading] = useState(false)
+  const [adhocEmailMsg, setAdhocEmailMsg] = useState('')
 
   const handleLogin = async () => {
     setLoginLoading(true); setLoginErr('')
@@ -366,6 +377,75 @@ export default function AdminPage() {
     }
   }
 
+  const startEditingNewsletter = (newsletter: NewsletterRecord) => {
+    setNewsletterMsg('')
+    setEditingNewsletterId(newsletter.id)
+    setEditNewsletterTitle(newsletter.title)
+    setEditNewsletterIssueDate(newsletter.issue_date?.slice(0, 10) || '')
+    setEditNewsletterFile(null)
+  }
+
+  const cancelEditingNewsletter = () => {
+    setEditingNewsletterId(null)
+    setEditNewsletterTitle('')
+    setEditNewsletterIssueDate('')
+    setEditNewsletterFile(null)
+    setUploadingEditPdf(false)
+    setSavingNewsletterEdit(false)
+  }
+
+  const saveNewsletterEdit = async (newsletter: NewsletterRecord) => {
+    setNewsletterMsg('')
+
+    if (!editNewsletterTitle.trim() || !editNewsletterIssueDate) {
+      setNewsletterMsg('⚠️ Title and issue date are required')
+      return
+    }
+
+    setSavingNewsletterEdit(true)
+
+    try {
+      let pdfPath: string | undefined
+
+      if (editNewsletterFile) {
+        setUploadingEditPdf(true)
+        const formData = new FormData()
+        formData.append('file', editNewsletterFile)
+
+        const uploadRes = await authFetch('/api/admin/newsletters/upload', {
+          method: 'POST',
+          body: formData,
+        })
+        const uploadData = await uploadRes.json()
+        if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed')
+        pdfPath = uploadData.path
+        setUploadingEditPdf(false)
+      }
+
+      const updateRes = await authFetch(`/api/admin/newsletters/${newsletter.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editNewsletterTitle,
+          issueDate: editNewsletterIssueDate,
+          pdfPath,
+        }),
+      })
+
+      const updateData = await updateRes.json()
+      if (!updateRes.ok) throw new Error(updateData.error || 'Unable to update newsletter')
+
+      setNewsletterMsg('✅ Newsletter updated')
+      cancelEditingNewsletter()
+      await loadNewsletters()
+    } catch (e: any) {
+      setNewsletterMsg(`⚠️ ${e.message}`)
+    } finally {
+      setUploadingEditPdf(false)
+      setSavingNewsletterEdit(false)
+    }
+  }
+
   const generateSignedNewsletterLink = async () => {
     setSignedLinkMsg('')
     setGeneratedNewsletterLink(null)
@@ -413,6 +493,39 @@ export default function AdminPage() {
       setSignedLinkMsg('✅ Link copied')
     } catch {
       setSignedLinkMsg('⚠️ Copy failed. Select the link and copy it manually.')
+    }
+  }
+
+  const sendAdhocEmail = async () => {
+    setAdhocEmailMsg('')
+
+    if (!adhocRecipients.trim() || !adhocSubject.trim() || !adhocMessage.trim()) {
+      setAdhocEmailMsg('⚠️ Recipients, subject, and message body are required')
+      return
+    }
+
+    setAdhocEmailLoading(true)
+
+    try {
+      const res = await authFetch('/api/admin/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipients: adhocRecipients,
+          subject: adhocSubject,
+          message: adhocMessage,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to send email')
+
+      setAdhocEmailMsg(`✅ Email sent to ${data.recipientCount || 0} recipient${data.recipientCount === 1 ? '' : 's'}`)
+      setAdhocSubject('')
+      setAdhocMessage('')
+    } catch (e: any) {
+      setAdhocEmailMsg(`⚠️ ${e.message}`)
+    } finally {
+      setAdhocEmailLoading(false)
     }
   }
 
@@ -676,9 +789,9 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'white', borderRadius: 14, padding: 4, border: '2px solid var(--border)', width: 'fit-content', marginBottom: 22 }}>
-          {(['subscribers', 'newsletters', 'links', 'pricing', 'contacts'] as const).map(t => (
+          {(['subscribers', 'newsletters', 'links', 'email', 'pricing', 'contacts'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 22px', borderRadius: 11, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', background: tab === t ? '#FFD166' : 'transparent', color: tab === t ? '#1A1208' : 'var(--muted)', boxShadow: tab === t ? 'var(--shadow-yellow)' : 'none' }}>
-              {t === 'subscribers' ? '📧 Subscribers' : t === 'newsletters' ? '📮 Newsletters' : t === 'links' ? '🔗 Signed Links' : t === 'pricing' ? '💱 Pricing' : '💬 Contacts'}
+              {t === 'subscribers' ? '📧 Subscribers' : t === 'newsletters' ? '📮 Newsletters' : t === 'links' ? '🔗 Signed Links' : t === 'email' ? '✉️ Email' : t === 'pricing' ? '💱 Pricing' : '💬 Contacts'}
             </button>
           ))}
         </div>
@@ -772,19 +885,45 @@ export default function AdminPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {newsletters.map(n => (
                   <div key={n.id} style={{ background: 'white', borderRadius: 16, padding: 14, border: '2px solid var(--border)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                      <div>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--dark)' }}>{n.title}</div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>Issue: {n.issue_date}</div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--hint)' }}>Status: {n.status}{n.sent_at ? ` · Sent: ${new Date(n.sent_at).toLocaleString()}` : ''}</div>
+                    {editingNewsletterId === n.id ? (
+                      <div style={{ display: 'grid', gap: 10 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+                          <input style={{ ...inp, background: 'white' }} value={editNewsletterTitle} onChange={e => setEditNewsletterTitle(e.target.value)} />
+                          <input style={{ ...inp, background: 'white' }} type="date" value={editNewsletterIssueDate} onChange={e => setEditNewsletterIssueDate(e.target.value)} />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                          <input type="file" accept="application/pdf" onChange={e => setEditNewsletterFile(e.target.files?.[0] || null)} />
+                          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--hint)' }}>
+                            {editNewsletterFile ? `Replacement: ${editNewsletterFile.name}` : 'Leave blank to keep current PDF'}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={() => saveNewsletterEdit(n)} disabled={savingNewsletterEdit || uploadingEditPdf} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: savingNewsletterEdit ? 'wait' : 'pointer' }}>
+                            {uploadingEditPdf ? 'Uploading PDF...' : savingNewsletterEdit ? 'Saving...' : 'Save Changes'}
+                          </button>
+                          <button onClick={cancelEditingNewsletter} disabled={savingNewsletterEdit || uploadingEditPdf} style={{ padding: '8px 12px', borderRadius: 10, border: '2px solid var(--border)', background: 'white', color: 'var(--muted)', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: savingNewsletterEdit ? 'not-allowed' : 'pointer' }}>
+                            Cancel
+                          </button>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => previewNewsletter(n.id)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#E6FAF9', color: '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>Preview</button>
-                        <button onClick={() => deleteNewsletter(n)} disabled={n.status === 'sending'} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFF0EF', color: '#E07D78', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: n.status === 'sending' ? 'not-allowed' : 'pointer' }}>
-                          Delete
-                        </button>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--dark)' }}>{n.title}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>Issue: {n.issue_date}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--hint)' }}>Status: {n.status}{n.sent_at ? ` · Sent: ${new Date(n.sent_at).toLocaleString()}` : ''}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={() => previewNewsletter(n.id)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#E6FAF9', color: '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}>Preview</button>
+                          <button onClick={() => startEditingNewsletter(n)} disabled={n.status === 'sending'} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFF8E1', color: '#BF8C00', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: n.status === 'sending' ? 'not-allowed' : 'pointer' }}>
+                            Edit
+                          </button>
+                          <button onClick={() => deleteNewsletter(n)} disabled={n.status === 'sending'} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: '#FFF0EF', color: '#E07D78', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: n.status === 'sending' ? 'not-allowed' : 'pointer' }}>
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -877,6 +1016,69 @@ export default function AdminPage() {
                 />
               </div>
             )}
+          </div>
+        )}
+
+        {/* AD HOC EMAIL */}
+        {tab === 'email' && (
+          <div>
+            {adhocEmailMsg && (
+              <div style={{ marginBottom: 14, background: 'white', border: '2px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
+                {adhocEmailMsg}
+              </div>
+            )}
+
+            <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Send Ad Hoc Email</div>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <label style={{ display: 'grid', gap: 7, fontSize: 12, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Recipient Emails
+                  <textarea
+                    style={{ ...inp, background: 'white', minHeight: 88, resize: 'vertical' }}
+                    placeholder="parent@example.com, another@example.com"
+                    value={adhocRecipients}
+                    onChange={e => {
+                      setAdhocRecipients(e.target.value)
+                      setAdhocEmailMsg('')
+                    }}
+                  />
+                </label>
+
+                <label style={{ display: 'grid', gap: 7, fontSize: 12, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Subject
+                  <input
+                    style={{ ...inp, background: 'white' }}
+                    value={adhocSubject}
+                    onChange={e => {
+                      setAdhocSubject(e.target.value)
+                      setAdhocEmailMsg('')
+                    }}
+                  />
+                </label>
+
+                <label style={{ display: 'grid', gap: 7, fontSize: 12, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Message Body
+                  <textarea
+                    style={{ ...inp, background: 'white', minHeight: 220, resize: 'vertical', lineHeight: 1.6 }}
+                    value={adhocMessage}
+                    onChange={e => {
+                      setAdhocMessage(e.target.value)
+                      setAdhocEmailMsg('')
+                    }}
+                  />
+                </label>
+
+                <div>
+                  <button
+                    onClick={sendAdhocEmail}
+                    disabled={adhocEmailLoading}
+                    style={{ padding: '12px 18px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: adhocEmailLoading ? 'wait' : 'pointer' }}
+                  >
+                    {adhocEmailLoading ? 'Sending...' : 'Send Email'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

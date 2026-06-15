@@ -4,6 +4,72 @@ import { requireAdmin } from '@/lib/serverAdminAuth'
 
 const BUCKET = 'newsletters'
 
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin(req)
+  if ('error' in auth) return auth.error
+
+  const { id } = await context.params
+  const newsletterId = Number(id)
+
+  if (!Number.isFinite(newsletterId)) {
+    return NextResponse.json({ error: 'Invalid newsletter id' }, { status: 400 })
+  }
+
+  try {
+    const { title, issueDate, pdfPath } = await req.json()
+    const cleanTitle = typeof title === 'string' ? title.trim() : ''
+    const cleanIssueDate = typeof issueDate === 'string' ? issueDate.trim() : ''
+    const cleanPdfPath = typeof pdfPath === 'string' ? pdfPath.trim() : ''
+
+    if (!cleanTitle || !cleanIssueDate) {
+      return NextResponse.json({ error: 'Title and issue date are required' }, { status: 400 })
+    }
+
+    const supabaseAdmin = getSupabaseAdmin()
+    const { data: newsletter, error: fetchError } = await supabaseAdmin
+      .from('newsletters')
+      .select('id,status')
+      .eq('id', newsletterId)
+      .maybeSingle()
+
+    if (fetchError || !newsletter) {
+      return NextResponse.json({ error: 'Newsletter not found' }, { status: 404 })
+    }
+
+    if (newsletter.status === 'sending') {
+      return NextResponse.json({ error: 'Cannot edit while newsletter is sending' }, { status: 409 })
+    }
+
+    const updates: {
+      title: string
+      issue_date: string
+      pdf_path?: string
+    } = {
+      title: cleanTitle,
+      issue_date: cleanIssueDate,
+    }
+
+    if (cleanPdfPath) {
+      updates.pdf_path = cleanPdfPath
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('newsletters')
+      .update(updates)
+      .eq('id', newsletterId)
+      .select('id,title,issue_date,pdf_path,status,created_at,sent_at')
+      .single()
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ newsletter: data })
+  } catch {
+    return NextResponse.json({ error: 'Invalid request payload' }, { status: 400 })
+  }
+}
+
 export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin(req)
   if ('error' in auth) return auth.error
