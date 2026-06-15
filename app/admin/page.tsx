@@ -72,13 +72,24 @@ type ContactQuery = {
   answered_at: string | null
 }
 
+type GeneratedNewsletterLink = {
+  url: string
+  expiresAt: string
+  expiresInDays: number
+  newsletter: {
+    id: number
+    title: string
+    issueDate: string
+  }
+}
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false)
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPw, setLoginPw] = useState('')
   const [loginErr, setLoginErr] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
-  const [tab, setTab] = useState<'subscribers' | 'newsletters' | 'pricing' | 'contacts'>('subscribers')
+  const [tab, setTab] = useState<'subscribers' | 'newsletters' | 'links' | 'pricing' | 'contacts'>('subscribers')
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [potentialSubscriberCount, setPotentialSubscriberCount] = useState(0)
   const [attemptedPaymentsCount, setAttemptedPaymentsCount] = useState(0)
@@ -113,6 +124,11 @@ export default function AdminPage() {
   const [savingNewsletter, setSavingNewsletter] = useState(false)
   const [sendingNewsletters, setSendingNewsletters] = useState(false)
   const [sendingTestEmails, setSendingTestEmails] = useState(false)
+  const [signedLinkNewsletterId, setSignedLinkNewsletterId] = useState('')
+  const [signedLinkExpiresInDays, setSignedLinkExpiresInDays] = useState('14')
+  const [signedLinkLoading, setSignedLinkLoading] = useState(false)
+  const [signedLinkMsg, setSignedLinkMsg] = useState('')
+  const [generatedNewsletterLink, setGeneratedNewsletterLink] = useState<GeneratedNewsletterLink | null>(null)
 
   const handleLogin = async () => {
     setLoginLoading(true); setLoginErr('')
@@ -347,6 +363,56 @@ export default function AdminPage() {
       window.open(data.url, '_blank', 'noopener,noreferrer')
     } catch (e: any) {
       setNewsletterMsg(`⚠️ ${e.message}`)
+    }
+  }
+
+  const generateSignedNewsletterLink = async () => {
+    setSignedLinkMsg('')
+    setGeneratedNewsletterLink(null)
+
+    const newsletterId = Number(signedLinkNewsletterId || newsletters[0]?.id)
+    const expiresInDays = Number(signedLinkExpiresInDays || 14)
+
+    if (!Number.isFinite(newsletterId)) {
+      setSignedLinkMsg('⚠️ Choose a newsletter first')
+      return
+    }
+
+    if (!Number.isFinite(expiresInDays) || expiresInDays < 1) {
+      setSignedLinkMsg('⚠️ Expiration must be at least 1 day')
+      return
+    }
+
+    setSignedLinkLoading(true)
+
+    try {
+      const res = await authFetch(`/api/admin/newsletters/${newsletterId}/download-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expiresInDays }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to generate signed link')
+
+      setGeneratedNewsletterLink(data)
+      setSignedLinkNewsletterId(String(data.newsletter.id))
+      setSignedLinkExpiresInDays(String(data.expiresInDays))
+      setSignedLinkMsg('✅ Signed link generated')
+    } catch (e: any) {
+      setSignedLinkMsg(`⚠️ ${e.message}`)
+    } finally {
+      setSignedLinkLoading(false)
+    }
+  }
+
+  const copyGeneratedNewsletterLink = async () => {
+    if (!generatedNewsletterLink?.url) return
+
+    try {
+      await navigator.clipboard.writeText(generatedNewsletterLink.url)
+      setSignedLinkMsg('✅ Link copied')
+    } catch {
+      setSignedLinkMsg('⚠️ Copy failed. Select the link and copy it manually.')
     }
   }
 
@@ -610,9 +676,9 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'white', borderRadius: 14, padding: 4, border: '2px solid var(--border)', width: 'fit-content', marginBottom: 22 }}>
-          {(['subscribers', 'newsletters', 'pricing', 'contacts'] as const).map(t => (
+          {(['subscribers', 'newsletters', 'links', 'pricing', 'contacts'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 22px', borderRadius: 11, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', background: tab === t ? '#FFD166' : 'transparent', color: tab === t ? '#1A1208' : 'var(--muted)', boxShadow: tab === t ? 'var(--shadow-yellow)' : 'none' }}>
-              {t === 'subscribers' ? '📧 Subscribers' : t === 'newsletters' ? '📮 Newsletters' : t === 'pricing' ? '💱 Pricing' : '💬 Contacts'}
+              {t === 'subscribers' ? '📧 Subscribers' : t === 'newsletters' ? '📮 Newsletters' : t === 'links' ? '🔗 Signed Links' : t === 'pricing' ? '💱 Pricing' : '💬 Contacts'}
             </button>
           ))}
         </div>
@@ -721,6 +787,94 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SIGNED LINKS */}
+        {tab === 'links' && (
+          <div>
+            {signedLinkMsg && (
+              <div style={{ marginBottom: 14, background: 'white', border: '2px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>
+                {signedLinkMsg}
+              </div>
+            )}
+
+            <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: 16, marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Generate Newsletter Link</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 1fr) minmax(140px, 180px) auto', gap: 10, alignItems: 'end' }}>
+                <label style={{ display: 'grid', gap: 7, fontSize: 12, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Week
+                  <select
+                    style={{ ...inp, background: 'white' }}
+                    value={signedLinkNewsletterId || String(newsletters[0]?.id || '')}
+                    onChange={e => {
+                      setSignedLinkNewsletterId(e.target.value)
+                      setGeneratedNewsletterLink(null)
+                      setSignedLinkMsg('')
+                    }}
+                  >
+                    {newsletters.length === 0 ? (
+                      <option value="">No newsletters uploaded</option>
+                    ) : (
+                      newsletters.map(n => (
+                        <option key={n.id} value={n.id}>
+                          {n.title} · {n.issue_date}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+
+                <label style={{ display: 'grid', gap: 7, fontSize: 12, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Expires In Days
+                  <input
+                    style={{ ...inp, background: 'white' }}
+                    type="number"
+                    min="1"
+                    max="45"
+                    value={signedLinkExpiresInDays}
+                    onChange={e => {
+                      setSignedLinkExpiresInDays(e.target.value)
+                      setGeneratedNewsletterLink(null)
+                      setSignedLinkMsg('')
+                    }}
+                  />
+                </label>
+
+                <button
+                  onClick={generateSignedNewsletterLink}
+                  disabled={signedLinkLoading || newsletters.length === 0}
+                  style={{ padding: '12px 16px', borderRadius: 10, border: 'none', background: '#FFD166', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: signedLinkLoading ? 'wait' : newsletters.length === 0 ? 'not-allowed' : 'pointer', opacity: newsletters.length === 0 ? 0.65 : 1 }}
+                >
+                  {signedLinkLoading ? 'Generating...' : 'Generate Link'}
+                </button>
+              </div>
+            </div>
+
+            {generatedNewsletterLink && (
+              <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--dark)' }}>{generatedNewsletterLink.newsletter.title}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>
+                      Expires {new Date(generatedNewsletterLink.expiresAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <button
+                    onClick={copyGeneratedNewsletterLink}
+                    style={{ padding: '9px 14px', borderRadius: 10, border: 'none', background: '#E6FAF9', color: '#4AADA8', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: 'pointer' }}
+                  >
+                    Copy Link
+                  </button>
+                </div>
+                <input
+                  readOnly
+                  style={{ ...inp, background: 'var(--cream)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12 }}
+                  value={generatedNewsletterLink.url}
+                  onFocus={e => e.target.select()}
+                />
               </div>
             )}
           </div>

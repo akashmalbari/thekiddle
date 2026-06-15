@@ -2,8 +2,8 @@ import crypto from 'node:crypto'
 import { resolveAppBaseUrl } from '@/lib/appUrl'
 
 export type NewsletterDownloadTokenPayload = {
-  sub: string
-  email: string
+  sub?: string
+  email?: string
   nid: number
   path: string
   title: string
@@ -50,7 +50,7 @@ export function verifyNewsletterDownloadToken(token: string): NewsletterDownload
 
   try {
     const payload = JSON.parse(base64urlDecode(encodedPayload)) as NewsletterDownloadTokenPayload
-    if (!payload?.sub || !payload?.email || !payload?.nid || !payload?.path || !payload?.title || !payload?.purpose || !payload?.exp) {
+    if (!payload?.nid || !payload?.path || !payload?.title || !payload?.purpose || !payload?.exp) {
       return null
     }
 
@@ -64,8 +64,8 @@ export function verifyNewsletterDownloadToken(token: string): NewsletterDownload
 }
 
 function buildNewsletterDownloadTokenPayload(params: {
-  parentId: string
-  email: string
+  parentId?: string
+  email?: string
   newsletterId: number
   pdfPath: string
   title: string
@@ -73,8 +73,8 @@ function buildNewsletterDownloadTokenPayload(params: {
 }): NewsletterDownloadTokenPayload {
   const now = Math.floor(Date.now() / 1000)
   return {
-    sub: params.parentId,
-    email: params.email,
+    sub: params.parentId || undefined,
+    email: params.email || undefined,
     nid: params.newsletterId,
     path: params.pdfPath,
     title: params.title,
@@ -84,11 +84,12 @@ function buildNewsletterDownloadTokenPayload(params: {
 }
 
 export function buildNewsletterDownloadLink(params: {
-  parentId: string
-  email: string
+  parentId?: string
+  email?: string
   newsletterId: number
   pdfPath: string
   title: string
+  expiresInSeconds?: number
 }) {
   const appBase = resolveAppBaseUrl().replace(/\/$/, '')
   const payload = buildNewsletterDownloadTokenPayload(params)
