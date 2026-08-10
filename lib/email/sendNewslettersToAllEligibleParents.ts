@@ -74,7 +74,7 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
   }
 
   const now = Date.now()
-  const weeklyCutoff = new Date(now - 6 * 24 * 60 * 60 * 1000)
+  const weeklyCutoff = new Date(now - 4 * 24 * 60 * 60 * 1000)
 
   let sentCount = 0
   let skippedWeeklyLimit = 0
