@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { buildNewsletterDownloadLink } from '@/lib/newsletterDownloadToken'
+import { getNewsletterSendSettings } from '@/lib/newsletterSettings'
 import { buildUnsubscribeLink } from '@/lib/unsubscribe'
 
 const RESEND_API_URL = 'https://api.resend.com/emails'
@@ -74,7 +75,8 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
   }
 
   const now = Date.now()
-  const weeklyCutoff = new Date(now - 4 * 24 * 60 * 60 * 1000)
+  const newsletterSettings = await getNewsletterSendSettings(supabaseAdmin)
+  const weeklyCutoff = new Date(newsletterSettings.weekly_cutoff_at)
 
   let sentCount = 0
   let skippedWeeklyLimit = 0
@@ -281,12 +283,12 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
           .eq('id', claimedProgress.id)
 
         sentCount += 1
-      } catch (err: any) {
+      } catch (err: unknown) {
         await supabaseAdmin.from('newsletter_send_logs').insert({
           newsletter_id: nextNewsletter.id,
           subscriber_email: parent.email,
           status: 'failed',
-          error_message: err?.message || 'Unexpected send error',
+          error_message: err instanceof Error ? err.message : 'Unexpected send error',
         })
 
         await supabaseAdmin

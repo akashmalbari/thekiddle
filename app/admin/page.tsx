@@ -83,6 +83,18 @@ type GeneratedNewsletterLink = {
   }
 }
 
+function toDateTimeLocal(value: string) {
+  const date = new Date(value)
+  if (!Number.isFinite(date.getTime())) return ''
+
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000)
+  return localDate.toISOString().slice(0, 16)
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback
+}
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false)
   const [loginEmail, setLoginEmail] = useState('')
@@ -130,6 +142,10 @@ export default function AdminPage() {
   const [uploadingEditPdf, setUploadingEditPdf] = useState(false)
   const [sendingNewsletters, setSendingNewsletters] = useState(false)
   const [sendingTestEmails, setSendingTestEmails] = useState(false)
+  const [newsletterCutoff, setNewsletterCutoff] = useState('')
+  const [newsletterCutoffLoading, setNewsletterCutoffLoading] = useState(false)
+  const [newsletterCutoffSaving, setNewsletterCutoffSaving] = useState(false)
+  const [newsletterCutoffMsg, setNewsletterCutoffMsg] = useState('')
   const [signedLinkNewsletterId, setSignedLinkNewsletterId] = useState('')
   const [signedLinkExpiresInDays, setSignedLinkExpiresInDays] = useState('14')
   const [signedLinkLoading, setSignedLinkLoading] = useState(false)
@@ -280,6 +296,57 @@ export default function AdminPage() {
       setNewsletterMsg(`⚠️ ${e.message}`)
     } finally {
       setNewsletterLoading(false)
+    }
+  }
+
+  const loadNewsletterSendConfig = async () => {
+    setNewsletterCutoffLoading(true)
+    setNewsletterCutoffMsg('')
+
+    try {
+      const res = await authFetch('/api/admin/newsletters/send-config')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to load newsletter cutoff')
+
+      setNewsletterCutoff(toDateTimeLocal(data.weekly_cutoff_at))
+    } catch (error: unknown) {
+      setNewsletterCutoffMsg(`⚠️ ${getErrorMessage(error, 'Failed to load newsletter cutoff')}`)
+    } finally {
+      setNewsletterCutoffLoading(false)
+    }
+  }
+
+  const saveNewsletterCutoff = async () => {
+    setNewsletterCutoffMsg('')
+
+    if (!newsletterCutoff) {
+      setNewsletterCutoffMsg('⚠️ Choose a cutoff date and time')
+      return
+    }
+
+    const cutoff = new Date(newsletterCutoff)
+    if (!Number.isFinite(cutoff.getTime())) {
+      setNewsletterCutoffMsg('⚠️ Choose a valid cutoff date and time')
+      return
+    }
+
+    setNewsletterCutoffSaving(true)
+
+    try {
+      const res = await authFetch('/api/admin/newsletters/send-config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weeklyCutoffAt: cutoff.toISOString() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to save newsletter cutoff')
+
+      setNewsletterCutoff(toDateTimeLocal(data.weekly_cutoff_at))
+      setNewsletterCutoffMsg('✅ Weekly cutoff saved')
+    } catch (error: unknown) {
+      setNewsletterCutoffMsg(`⚠️ ${getErrorMessage(error, 'Unable to save newsletter cutoff')}`)
+    } finally {
+      setNewsletterCutoffSaving(false)
     }
   }
 
@@ -790,7 +857,7 @@ export default function AdminPage() {
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'white', borderRadius: 14, padding: 4, border: '2px solid var(--border)', width: 'fit-content', marginBottom: 22 }}>
           {(['subscribers', 'newsletters', 'links', 'email', 'pricing', 'contacts'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 22px', borderRadius: 11, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', background: tab === t ? '#FFD166' : 'transparent', color: tab === t ? '#1A1208' : 'var(--muted)', boxShadow: tab === t ? 'var(--shadow-yellow)' : 'none' }}>
+            <button key={t} onClick={() => { setTab(t); if (t === 'newsletters') loadNewsletterSendConfig() }} style={{ padding: '8px 22px', borderRadius: 11, border: 'none', fontFamily: "'Nunito',sans-serif", fontSize: 14, fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', background: tab === t ? '#FFD166' : 'transparent', color: tab === t ? '#1A1208' : 'var(--muted)', boxShadow: tab === t ? 'var(--shadow-yellow)' : 'none' }}>
               {t === 'subscribers' ? '📧 Subscribers' : t === 'newsletters' ? '📮 Newsletters' : t === 'links' ? '🔗 Signed Links' : t === 'email' ? '✉️ Email' : t === 'pricing' ? '💱 Pricing' : '💬 Contacts'}
             </button>
           ))}
@@ -845,6 +912,33 @@ export default function AdminPage() {
                 {newsletterMsg}
               </div>
             )}
+
+            <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: 16, marginBottom: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Weekly Send Cutoff</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--body)', marginBottom: 12 }}>
+                Subscribers who received a newsletter at or after this time will be skipped. Move the cutoff forward when you are ready to start the next weekly send window.
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <input
+                  style={{ ...inp, width: 'auto', minWidth: 240, background: 'white' }}
+                  type="datetime-local"
+                  value={newsletterCutoff}
+                  max={toDateTimeLocal(new Date().toISOString())}
+                  disabled={newsletterCutoffLoading || newsletterCutoffSaving || sendingNewsletters}
+                  onChange={e => setNewsletterCutoff(e.target.value)}
+                />
+                <button
+                  onClick={saveNewsletterCutoff}
+                  disabled={newsletterCutoffLoading || newsletterCutoffSaving || sendingNewsletters}
+                  style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#6ECDC8', color: '#1A1208', fontFamily: "'Nunito',sans-serif", fontWeight: 800, cursor: newsletterCutoffSaving ? 'wait' : newsletterCutoffLoading || sendingNewsletters ? 'not-allowed' : 'pointer' }}
+                >
+                  {newsletterCutoffLoading ? 'Loading...' : newsletterCutoffSaving ? 'Saving...' : 'Save Cutoff'}
+                </button>
+              </div>
+              {newsletterCutoffMsg && (
+                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: 'var(--body)' }}>{newsletterCutoffMsg}</div>
+              )}
+            </div>
 
             <div style={{ marginBottom: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button
