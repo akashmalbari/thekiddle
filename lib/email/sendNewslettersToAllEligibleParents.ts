@@ -75,8 +75,7 @@ export async function sendNewslettersToAllEligibleParents(): Promise<SendNewslet
   }
 
   const now = Date.now()
-  const newsletterSettings = await getNewsletterSendSettings(supabaseAdmin)
-  const weeklyCutoff = new Date(newsletterSettings.weekly_cutoff_at)
+  const weeklyCutoff = new Date(now - 6 * 24 * 60 * 60 * 1000)
 
   let sentCount = 0
   let skippedWeeklyLimit = 0
