@@ -7,7 +7,7 @@ export type NewsletterSendSettings = {
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const DEFAULT_WEEKLY_CUTOFF_LOOKBACK_MS = 4 * 24 * 60 * 60 * 1000
+const DEFAULT_WEEKLY_CUTOFF_LOOKBACK_MS = 6 * 24 * 60 * 60 * 1000
 
 export function parseRecipientEmails(raw: string | null | undefined): string[] {
   if (!raw) return []
