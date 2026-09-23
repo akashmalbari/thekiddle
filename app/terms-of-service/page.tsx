@@ -1,4 +1,11 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | The Kiddle',
+  description: 'Read the terms governing The Kiddle subscription and website.',
+  alternates: { canonical: '/terms-of-service' },
+}
 
 export default function TermsOfServicePage() {
   return (

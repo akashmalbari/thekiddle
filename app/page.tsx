@@ -373,7 +373,7 @@ export default function HomePage() {
             </span>
           </h1>
           <p style={{ fontSize: isMobile ? 16 : 18, color: 'var(--body)', lineHeight: 1.75, marginBottom: 36, fontWeight: 600, maxWidth: 540, marginInline: 'auto' }}>
-            Kiddle is a weekly print-and-play workbook packed with activities most kids have never seen together — science, phonics, storytelling, movement, and more. Busy parents, this one's for you.
+            The Kiddle is a weekly print-and-play workbook packed with activities most kids have never seen together — science, phonics, storytelling, movement, and more. Busy parents, this one&apos;s for you.
           </p>
           <div style={{ marginBottom: 20, maxWidth: isMobile ? 420 : 760, marginInline: 'auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
             <YellowBtn onClick={() => scrollTo('pricing')} style={{ width: '100%', padding: '14px 20px', fontSize: 15 }}>
@@ -433,7 +433,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <Tag color="pink">Simple Process</Tag>
-            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>How Kiddle Works</h2>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 14 }}>How The Kiddle Works</h2>
             <p style={{ fontSize: isMobile ? 15 : 17, color: 'var(--body)', fontWeight: 600 }}>Getting started is easy! Three simple steps to transform playtime.</p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -566,16 +566,16 @@ export default function HomePage() {
               <Tag color="pink">Our Story</Tag>
             </div>
             <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, color: 'var(--dark)', marginTop: 16, marginBottom: 16 }}>
-              Why we started Kiddle?
+              Why we started The Kiddle
             </h2>
             <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600, marginBottom: 16 }}>
-              Kiddle started with a simple thought — in a world full of screens and busy schedules, children don’t just need more activities, they need more meaningful moments.
+              The Kiddle started with a simple thought — in a world full of screens and busy schedules, children don’t just need more activities, they need more meaningful moments.
             </p>
             <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600, marginBottom: 16 }}>
               Every Kiddle is thoughtfully curated to help parents and kids slow down, connect, and grow together — through simple, playful learning that fits into real life.
             </p>
-            <p style={{ fontSize: isMobile ? 16 : 17, color: 'var(--body)', lineHeight: 1.8, fontWeight: 600 }}>
-              -- Manali Killedar - Malbari (Founder)
+            <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, fontWeight: 600 }}>
+              The Kiddle is a weekly printable activity subscription for families and is not affiliated with the Kiddle search engine.
             </p>
           </div>
 

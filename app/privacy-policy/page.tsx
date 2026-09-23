@@ -1,4 +1,11 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | The Kiddle',
+  description: 'Read The Kiddle privacy policy.',
+  alternates: { canonical: '/privacy-policy' },
+}
 
 export default function PrivacyPolicyPage() {
   return (

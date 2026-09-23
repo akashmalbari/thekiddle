@@ -40,15 +40,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${post.title} | The Kiddle Blog`,
     description: post.seoDescription,
     keywords: post.seoKeywords,
+    alternates: {
+      canonical: `/blog/${post.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.seoDescription,
       type: 'article',
-      url: `https://thekiddle.com/blog/${post.slug}`,
+      url: `/blog/${post.slug}`,
       publishedTime: post.date,
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: post.title,
       description: post.seoDescription,
     },
@@ -141,7 +144,10 @@ export default async function BlogPostPage({ params }: Props) {
         </section>
       </main>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
     </div>
   )
 }

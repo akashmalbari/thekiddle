@@ -1,4 +1,11 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Frequently Asked Questions | The Kiddle',
+  description: 'Answers about The Kiddle weekly printable activity subscription for children ages 3–5.',
+  alternates: { canonical: '/faq' },
+}
 
 export default function FAQPage() {
   return (
@@ -22,12 +29,12 @@ export default function FAQPage() {
 
         {[
           {
-            q: 'What is Kiddle?',
-            a: 'Kiddle is a weekly learning adventure designed for young children — delivered as a thoughtfully curated activity pack that blends creativity, phonics, logic, and play into meaningful time together.',
+            q: 'What is The Kiddle?',
+            a: 'The Kiddle is a weekly learning adventure designed for young children — delivered as a thoughtfully curated activity pack that blends creativity, phonics, logic, and play into meaningful time together.',
           },
           {
-            q: 'Who is Kiddle for?',
-            a: 'Kiddle is designed for parents, caregivers, and educators of children ages 3–5. Children enjoy the activities, but adults guide the experience.',
+            q: 'Who is The Kiddle for?',
+            a: 'The Kiddle is designed for parents, caregivers, and educators of children ages 3–5. Children enjoy the activities, but adults guide the experience.',
           },
           {
             q: 'What do I receive each week?',
@@ -47,7 +54,7 @@ export default function FAQPage() {
           },
           {
             q: 'Is this screen-free?',
-            a: 'Kiddle is designed to be used away from screens once opened or printed — helping children learn through hands-on play and real-world interaction.',
+            a: 'The Kiddle is designed to be used away from screens once opened or printed — helping children learn through hands-on play and real-world interaction.',
           },
           {
             q: 'Can I cancel anytime?',
@@ -55,7 +62,7 @@ export default function FAQPage() {
           },
           {
             q: 'Is this a replacement for school or professional advice?',
-            a: 'No. Kiddle is designed to support early learning through play, but it is not a substitute for formal education, medical, or professional advice.',
+            a: 'No. The Kiddle is designed to support early learning through play, but it is not a substitute for formal education, medical, or professional advice.',
           },
           {
             q: 'How can I contact support?',

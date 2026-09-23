@@ -12,12 +12,15 @@ export const metadata: Metadata = {
   title: 'The Kiddle Blog | Playful Learning Ideas for Ages 3–5',
   description:
     'Browse The Kiddle blog for parent-friendly tips on themed learning, preschool readiness, and joyful at-home activities for children ages 3–5.',
+  alternates: {
+    canonical: '/blog',
+  },
   openGraph: {
     title: 'The Kiddle Blog | Playful Learning Ideas for Ages 3–5',
     description:
       'Parent-friendly guides and ideas to make early learning fun, structured, and screen-free for kids ages 3–5.',
     type: 'website',
-    url: 'https://thekiddle.com/blog',
+    url: '/blog',
   },
 }
 
